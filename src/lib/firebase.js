@@ -3,24 +3,18 @@ import { getFirestore } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  apiKey: "AIzaSyAgOQz8ny8qrSLs3lLbF3X7P0SzuxzYnAU",
+  authDomain: "innerloppa.firebaseapp.com",
+  projectId: "innerloppa",
+  storageBucket: "innerloppa.firebasestorage.app",
+  messagingSenderId: "450759372586",
+  appId: "1:450759372586:web:7e178d710190ed0e02b853",
+  measurementId: "G-1KN5RX83MM",
 };
 
-// Check if Firebase is configured
-export const isFirebaseConfigured = Boolean(firebaseConfig.apiKey && firebaseConfig.projectId);
+export const isFirebaseConfigured = true;
 
-let app, db, auth;
-
-if (isFirebaseConfigured) {
-  app = initializeApp(firebaseConfig);
-  db = getFirestore(app);
-  auth = getAuth(app);
-}
-
-export { db, auth };
+const app = initializeApp(firebaseConfig);
+export const db = getFirestore(app);
+export const auth = getAuth(app);
 export default app;
