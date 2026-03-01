@@ -23,6 +23,10 @@ export function AuthProvider({ children }) {
 
   // Listen to Firebase auth state
   useEffect(() => {
+    if (!auth) {
+      setLoading(false);
+      return;
+    }
     const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
       if (firebaseUser) {

@@ -1,7 +1,9 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { isFirebaseConfigured } from './lib/firebase';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ToastProvider } from './contexts/ToastContext';
+import FirebaseSetup from './components/FirebaseSetup';
 import LandingPage from './pages/LandingPage';
 import SignUpPage from './pages/SignUpPage';
 import LoginPage from './pages/LoginPage';
@@ -114,6 +116,11 @@ function AppRoutes() {
 }
 
 function App() {
+  // If Firebase isn't configured, show setup instructions
+  if (!isFirebaseConfigured) {
+    return <FirebaseSetup />;
+  }
+
   return (
     <BrowserRouter>
       <ToastProvider>
