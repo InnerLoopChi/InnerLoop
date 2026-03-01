@@ -12,6 +12,8 @@ import ProfilePage from './pages/ProfilePage';
 import MyTasksPage from './pages/MyTasksPage';
 import MessagesPage from './pages/MessagesPage';
 import SettingsPage from './pages/SettingsPage';
+import CalendarPage from './pages/CalendarPage';
+import MapPage from './pages/MapPage';
 import SeedPage from './pages/SeedPage';
 import BottomNav from './components/BottomNav';
 
@@ -56,15 +58,14 @@ function AppRoutes() {
       <Route path="/signup" element={<GuestRoute><SignUpPage /></GuestRoute>} />
       <Route path="/login" element={<GuestRoute><LoginPage /></GuestRoute>} />
 
-      {/* Protected — feed placeholder for now */}
-      <Route
-        path="/feed"
-        element={
-          <ProtectedRoute>
-            <FeedPage />
-          </ProtectedRoute>
-        }
-      />
+      {/* Protected — feed */}
+      <Route path="/feed" element={<ProtectedRoute><FeedPage /></ProtectedRoute>} />
+
+      {/* Protected — calendar */}
+      <Route path="/calendar" element={<ProtectedRoute><CalendarPage /></ProtectedRoute>} />
+
+      {/* Protected — map */}
+      <Route path="/map" element={<ProtectedRoute><MapPage /></ProtectedRoute>} />
 
       {/* Protected — profile */}
       <Route

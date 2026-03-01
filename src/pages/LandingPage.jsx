@@ -91,14 +91,17 @@ function Navbar() {
       scrolled ? 'bg-white/90 backdrop-blur-xl shadow-sm' : 'bg-transparent'
     }`}>
       <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
-        <a href="#" className="font-display text-2xl font-extrabold tracking-tight text-loop-green">
+        <Link to="/" className="font-display text-2xl font-extrabold tracking-tight text-loop-green">
           Inner<span className="bg-gradient-to-r from-loop-purple to-loop-red bg-clip-text text-transparent">Loop</span>
-        </a>
+        </Link>
 
         <div className="hidden md:flex items-center gap-8 text-sm font-medium">
           <a href="#mission" className="text-loop-green/70 hover:text-loop-green transition-colors">Mission</a>
           <a href="#how-it-works" className="text-loop-green/70 hover:text-loop-green transition-colors">How It Works</a>
           <a href="#rewards" className="text-loop-green/70 hover:text-loop-green transition-colors">Rewards</a>
+          <Link to="/login" className="text-loop-green/70 hover:text-loop-green transition-colors">
+            Sign In
+          </Link>
           <Link to="/signup" className="group inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-loop-green text-white text-xs font-semibold hover:shadow-lg hover:shadow-loop-green/20 transition-all duration-300 hover:scale-105">
             Join the Loop <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
           </Link>
@@ -125,6 +128,9 @@ function Navbar() {
               {label}
             </a>
           ))}
+          <Link to="/login" onClick={() => setOpen(false)} className="block text-sm font-medium py-2 text-loop-purple">
+            Sign In
+          </Link>
           <Link to="/signup" onClick={() => setOpen(false)} className="btn-primary text-xs w-full text-center">
             Join the Loop
           </Link>
