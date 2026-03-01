@@ -25,21 +25,17 @@ export default function MyTasksPage() {
 
   useEffect(() => {
     if (!user?.uid) return;
-    let q;
-    if (isInner) {
-      // Inner: get own posts, filter tasks client-side
-      q = query(collection(db, 'posts'), where('authorID', '==', user.uid), orderBy('postTime', 'desc'));
-    } else {
-      // Looper: get all posts, filter to applied ones client-side
-      q = query(collection(db, 'posts'), orderBy('postTime', 'desc'));
-    }
+    // Single simple query for everyone — filter client-side
+    const q = query(collection(db, 'posts'), orderBy('postTime', 'desc'));
 
     const unsub = onSnapshot(q, (snap) => {
       let data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       // Filter to tasks only
       data = data.filter(t => t.taskCapacity > 0);
-      // For Loopers, filter to tasks they applied to
-      if (!isInner) {
+      // Inner: show own tasks. Looper: show tasks they applied to
+      if (isInner) {
+        data = data.filter(t => t.authorID === user.uid);
+      } else {
         data = data.filter(t => t.applicants?.some(a => a.uid === user.uid) || t.joinedUsers?.includes(user.uid));
       }
       setTasks(data);

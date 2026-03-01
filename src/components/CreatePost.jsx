@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { collection, addDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
+import { collection, addDoc, Timestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
@@ -89,7 +89,7 @@ export default function CreatePost({ onClose, isInnerOnly = false }) {
         authorRole: profile?.role || 'Looper',
         content: trimmed,
         tags,
-        postTime: serverTimestamp(),
+        postTime: Timestamp.now(),
         isInnerOnly: innerPost,
         taskCapacity: isTask ? Number(taskCapacity) : null,
         taskFilled: isTask ? 0 : null,
