@@ -40,11 +40,15 @@ Visit `/seed` first to populate the database. Password for everything is `demo12
 
 ## Project structure
 
-Everything lives in `src/`. The auth logic is in `contexts/AuthContext.jsx` and firebase config is in `lib/firebase.js`.
+The app is a React Single Page Application (SPA), and all the core code lives inside the `src` folder.
 
-The pages folder has all the main views. `FeedPage` is the main feed, `MapPage` handles the leaflet map, `MyTasksPage` is where organizations manage applications, `CalendarPage` shows upcoming tasks, `MessagesPage` is the whole DM system, `ProfilePage` has the user profile and reward redemption, and `SeedPage` is for loading demo data.
+At the root level of `src`, `App.jsx` handles all the React Router logic. It sets up public routes for guests and protected routes for authenticated users, making sure you get redirected to the login page if you try to view the feed without an account. It also wraps the whole app in our context providers.
 
-For components we have `PostCard` which renders each post with the apply button, `CreatePost` for making new posts, `BottomNav` for the tab bar, and `NotificationBell` for the real time notification dropdown.
+For state management and backend connection, we kept things simple. The `lib/firebase.js` file initializes the Firebase connection. Then we use React Context (`contexts/AuthContext.jsx`) to manage the current user's authentication state and their Firestore profile data. That context provider listens for real time updates, so if a user's verified status or loop credits change in the database, the whole app knows about it instantly.
+
+The `pages` folder contains the main full-screen views. `LandingPage`, `LoginPage`, and `SignUpPage` handle the public facing side. Once you're signed in, `FeedPage` is the main dashboard pulling all posts and letting you filter them. `MapPage` drops Leaflet into the app to show neighborhood markers and post locations. `MyTasksPage` is where organizations manage the people applying to their posts, and where volunteers check the status of their applications. We also have `MessagesPage` bringing the DM system to life, `CalendarPage` for a monthly schedule view, and `ProfilePage` where actual rewards can be claimed using volunteer credits.
+
+Finally, the `components` folder holds the reusable UI pieces. `PostCard` handles displaying the volunteer task, checks if you've already applied, and has the apply/waitlist button. `CreatePost` is the modal where organizations actually write the posts. We also have `BottomNav` for the mobile-friendly tab bar at the bottom, and `NotificationBell` which sits in the top nav and listens to a dedicated Firestore collection to show unread alerts.
 
 ## Key features and how they work
 
