@@ -42,9 +42,8 @@ function Reveal({ children, className = '', delay = 0 }) {
   return (
     <div
       ref={ref}
-      className={`transition-all duration-700 ease-out ${
-        visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-      } ${className}`}
+      className={`transition-all duration-700 ease-out ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+        } ${className}`}
       style={{ transitionDelay: `${delay}ms` }}
     >
       {children}
@@ -87,9 +86,8 @@ function Navbar() {
   }, []);
 
   return (
-    <nav className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${
-      scrolled ? 'bg-white/90 backdrop-blur-xl shadow-sm' : 'bg-transparent'
-    }`}>
+    <nav className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white/90 backdrop-blur-xl shadow-sm' : 'bg-transparent'
+      }`}>
       <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
         <Link to="/" className="font-display text-2xl font-extrabold tracking-tight text-loop-green">
           Inner<span className="bg-gradient-to-r from-loop-purple to-loop-red bg-clip-text text-transparent">Loop</span>
@@ -336,7 +334,7 @@ function HowItWorks() {
               An everyday person who can both <strong className="text-loop-green/90">give help</strong> and <strong className="text-loop-green/90">ask for help</strong>. Loopers browse the local feed, pick up tasks from verified Inners, and earn rewards for every hour they contribute.
             </p>
             <ul className="space-y-3 text-sm">
-              {['Browse & claim tasks on the local feed', 'Earn verified hours + Loop Credits', 'Build your Star Rating through reviews', 'Join waitlists for full tasks \u2014 get 2\u00d7 rewards'].map((item, i) => (
+              {['Browse & claim tasks on the local feed', 'Earn verified hours + Loop Credits', 'Build your Star Rating through reviews', 'Join waitlists for full tasks — get 2× rewards'].map((item, i) => (
                 <li key={i} className="flex items-start gap-3">
                   <span className="mt-0.5 w-6 h-6 rounded-full bg-loop-red/10 flex items-center justify-center flex-shrink-0">
                     <ArrowRight size={12} className="text-loop-red" />
@@ -360,7 +358,7 @@ function HowItWorks() {
               </div>
             </div>
             <p className="text-loop-green/65 leading-relaxed">
-              A <strong className="text-loop-green/90">verified organization</strong> \u2014 non-profit, local business, or community group \u2014 that posts structured tasks, manages capacity, and ensures services are completed properly even if plans change.
+              A <strong className="text-loop-green/90">verified organization</strong> — non-profit, local business, or community group — that posts structured tasks, manages capacity, and ensures services are completed properly even if plans change.
             </p>
             <ul className="space-y-3 text-sm">
               {['Post tasks & manage volunteer capacity', 'Verify hours and issue Loop Credits', 'Access the Inner Loop (private B2B feed)', 'DM other Inners, share space & resources'].map((item, i) => (
@@ -402,7 +400,7 @@ function Rewards() {
 
       <div className="max-w-5xl mx-auto grid sm:grid-cols-3 gap-6 relative z-10">
         {[
-          { icon: <Star className="text-loop-red" />, label: 'Star Rating', desc: 'Reviewed after every task. 1\u20135 stars reflect your reliability and effort.' },
+          { icon: <Star className="text-loop-red" />, label: 'Star Rating', desc: 'Reviewed after every task. 1–5 stars reflect your reliability and effort.' },
           { icon: <Clock className="text-loop-blue" />, label: 'Verified Hours', desc: 'Logged by Inners once a task is done. Proof of real community impact.' },
           { icon: <Coins className="text-loop-red" />, label: 'Loop Credits', desc: 'Earned per task. Redeemable at local businesses and partner orgs.' },
         ].map((r, i) => (
@@ -422,7 +420,7 @@ function Rewards() {
             <Zap size={20} /> Waitlist Reward Multiplier
           </div>
           <p className="text-white/65 leading-relaxed">
-            When a task is full, Loopers can join a <strong className="text-white/90">waitlist</strong>. If a spot opens and a waitlisted Looper completes the task, their verified hours and Loop Credits are <strong className="text-loop-red">doubled (2\u00d7)</strong>. Patience pays.
+            When a task is full, Loopers can join a <strong className="text-white/90">waitlist</strong>. If a spot opens and a waitlisted Looper completes the task, their verified hours and Loop Credits are <strong className="text-loop-red">doubled (2×)</strong>. Patience pays.
           </p>
         </div>
       </Reveal>
@@ -445,7 +443,7 @@ function Privacy() {
           </Reveal>
           <Reveal delay={300}>
             <p className="text-loop-green/60 leading-relaxed">
-              Verified Inners get an exclusive <strong className="text-loop-purple">"Inner Loop"</strong> \u2014 a private layer where they can securely DM each other, share event space, or swap resources, completely hidden from the public feed.
+              Verified Inners get an exclusive <strong className="text-loop-purple">"Inner Loop"</strong> — a private layer where they can securely DM each other, share event space, or swap resources, completely hidden from the public feed.
             </p>
           </Reveal>
         </div>
@@ -473,9 +471,9 @@ function Privacy() {
 /* ────────────────────── FAQ ──────────────────────────────────────── */
 function FAQ() {
   const faqs = [
-    { q: 'Is InnerLoop only for Chicago?', a: "We're launching in Chicago first \u2014 neighborhood by neighborhood. Expansion plans depend on community growth." },
+    { q: 'Is InnerLoop only for Chicago?', a: "We're launching in Chicago first — neighborhood by neighborhood. Expansion plans depend on community growth." },
     { q: 'How do I become a verified Inner?', a: 'Organizations apply through our signup flow. We verify legal status, location, and community presence before granting Inner status.' },
-    { q: 'What can I spend Loop Credits on?', a: 'Credits are redeemable at participating local businesses and partner orgs \u2014 think discounts, event tickets, and community perks.' },
+    { q: 'What can I spend Loop Credits on?', a: 'Credits are redeemable at participating local businesses and partner orgs — think discounts, event tickets, and community perks.' },
     { q: 'How does the waitlist bonus work?', a: 'If a task is full and you join the waitlist, then complete the task after a spot opens, your verified hours and Loop Credits are doubled.' },
   ];
   const [openIndex, setOpenIndex] = useState(null);
@@ -521,7 +519,7 @@ function JoinCTA() {
         <Reveal><h2 className="font-display text-3xl md:text-5xl font-bold">Ready to join the Loop?</h2></Reveal>
         <Reveal delay={100}>
           <p className="text-white/65 max-w-lg mx-auto leading-relaxed">
-            Whether you're an everyday person looking to help, or an organization ready to mobilize your community \u2014 there's a place for you here.
+            Whether you're an everyday person looking to help, or an organization ready to mobilize your community — there's a place for you here.
           </p>
         </Reveal>
         <Reveal delay={200}>
