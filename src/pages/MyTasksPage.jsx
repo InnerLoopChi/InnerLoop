@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  collection, onSnapshot, doc, updateDoc, getDoc,
+  collection, onSnapshot, doc, updateDoc, getDoc, addDoc, Timestamp,
 } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAuth } from '../contexts/AuthContext';
@@ -12,6 +12,7 @@ import {
   Building2, Heart, ChevronDown, ChevronUp, Shield, X,
   ClipboardCheck, UserCheck, UserX, MessageSquare,
 } from 'lucide-react';
+import NotificationBell from '../components/NotificationBell';
 
 export default function MyTasksPage() {
   const { user, profile } = useAuth();
@@ -60,11 +61,12 @@ export default function MyTasksPage() {
   return (
     <div className="min-h-screen bg-loop-gray">
       <div className="sticky top-0 z-40 bg-white/90 backdrop-blur-xl border-b border-loop-gray/50">
-        <div className="max-w-2xl mx-auto px-4 py-3">
-          <span className="font-display text-lg font-extrabold flex items-center gap-2">
+        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
+          <button onClick={() => window.location.reload()} className="font-display text-lg font-extrabold flex items-center gap-2 hover:opacity-70 transition-opacity cursor-pointer">
             {isInner ? <Building2 size={18} className="text-loop-purple" /> : <Heart size={18} className="text-loop-red" />}
             {isInner ? 'My Posted Tasks' : 'My Applications'}
-          </span>
+          </button>
+          <NotificationBell />
         </div>
       </div>
 
@@ -143,6 +145,14 @@ function TaskCard({ task, isInner, isExpanded, onToggle, onMarkComplete, onRevie
         taskFilled: currentFilled + 1,
       });
       toast.success(`Accepted ${applicant.name}!`);
+      // Notification
+      try {
+        await addDoc(collection(db, 'notifications'), {
+          recipientId: applicant.uid, type: 'accepted',
+          message: `Your application to "${task.content?.slice(0, 40)}..." was accepted!`,
+          read: false, createdAt: Timestamp.now(), link: '/tasks',
+        });
+      } catch (e) { }
     } catch (err) {
       toast.error('Failed to accept.');
     }
@@ -159,6 +169,14 @@ function TaskCard({ task, isInner, isExpanded, onToggle, onMarkComplete, onRevie
       );
       await updateDoc(ref, { applicants: updatedApplicants });
       toast.info(`Declined ${applicant.name}`);
+      // Notification
+      try {
+        await addDoc(collection(db, 'notifications'), {
+          recipientId: applicant.uid, type: 'rejected',
+          message: `Your application to "${task.content?.slice(0, 40)}..." was declined.`,
+          read: false, createdAt: Timestamp.now(), link: '/tasks',
+        });
+      } catch (e) { }
     } catch (err) {
       toast.error('Failed to update.');
     }

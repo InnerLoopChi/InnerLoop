@@ -48,26 +48,7 @@ export default function MessagesPage() {
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
-  // Not a verified Inner — show access denied
-  if (!isVerifiedInner) {
-    return (
-      <div className="min-h-screen bg-loop-gray flex items-center justify-center px-6">
-        <div className="bg-white rounded-3xl shadow-sm border border-loop-gray/50 p-10 max-w-md text-center space-y-4">
-          <div className="w-16 h-16 mx-auto rounded-2xl bg-loop-purple/10 flex items-center justify-center">
-            <Shield size={28} className="text-loop-purple" />
-          </div>
-          <h2 className="font-display text-xl font-bold">Inner Loop Only</h2>
-          <p className="text-sm text-loop-green/50">
-            Direct messaging is available exclusively to verified Inner accounts.
-            {profile?.role === 'Inner' && !profile?.isVerified && ' Your account is pending verification.'}
-          </p>
-          <button onClick={() => navigate('/feed')} className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-loop-green text-white text-sm font-semibold">
-            <ArrowLeft size={16} /> Back to Feed
-          </button>
-        </div>
-      </div>
-    );
-  }
+  // Access granted to everyone now
 
   // Load conversations
   useEffect(() => {
@@ -114,15 +95,13 @@ export default function MessagesPage() {
     return unsub;
   }, [activeConvo?.id]);
 
-  // Load verified Inners for new conversation
+  // Load users for new conversation
   useEffect(() => {
     if (!showNewConvo) return;
 
     getDocs(collection(db, 'users')).then(snap => {
       const allUsers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      setInners(allUsers
-        .filter(u => u.role === 'Inner' && u.isVerified === true && u.id !== user.uid)
-      );
+      setInners(allUsers.filter(u => u.id !== user.uid));
     });
   }, [showNewConvo]);
 
@@ -183,6 +162,32 @@ export default function MessagesPage() {
     }
   }
 
+  async function handleAcceptRequest() {
+    if (!activeConvo) return;
+    try {
+      await updateDoc(doc(db, 'conversations', activeConvo.id), {
+        status: 'accepted'
+      });
+      setActiveConvo({ ...activeConvo, status: 'accepted' });
+    } catch (err) {
+      console.error('Accept error:', err);
+    }
+  }
+
+  async function handleDeclineRequest() {
+    if (!activeConvo) return;
+    if (!window.confirm("Decline and delete this conversation request?")) return;
+    setDeletingChat(true);
+    try {
+      await deleteDoc(doc(db, 'conversations', activeConvo.id));
+      setActiveConvo(null);
+    } catch (err) {
+      console.error('Decline error:', err);
+    } finally {
+      setDeletingChat(false);
+    }
+  }
+
   // Start new conversation
   async function startConvo(otherUser) {
     // Check local state first
@@ -229,6 +234,8 @@ export default function MessagesPage() {
       [`unread_${user.uid}`]: 0,
       [`unread_${otherUser.id}`]: 0,
       createdAt: Timestamp.now(),
+      status: 'pending',
+      senderId: user.uid,
     };
 
     try {
@@ -270,10 +277,10 @@ export default function MessagesPage() {
           <button onClick={() => activeConvo ? setActiveConvo(null) : navigate('/feed')} className="flex items-center gap-1.5 text-sm font-medium text-loop-green/60 hover:text-loop-green transition-colors">
             <ArrowLeft size={18} /> {activeConvo ? 'Back' : 'Feed'}
           </button>
-          <span className="font-display text-lg font-extrabold flex items-center gap-2">
-            <Shield size={16} className="text-loop-purple" />
-            {activeConvo ? getOtherName(activeConvo) : 'Inner Loop DMs'}
-          </span>
+          <button onClick={() => window.location.reload()} className="font-display text-lg font-extrabold flex items-center gap-2 hover:opacity-70 transition-opacity cursor-pointer">
+            <MessageSquare size={16} className="text-loop-purple" />
+            {activeConvo ? getOtherName(activeConvo) : 'Direct Messages'}
+          </button>
           {!activeConvo ? (
             <button onClick={() => setShowNewConvo(true)} className="w-9 h-9 rounded-full bg-loop-purple text-white flex items-center justify-center hover:shadow-md transition-all">
               <Plus size={16} />
@@ -315,7 +322,7 @@ export default function MessagesPage() {
                       }`}
                   >
                     <div className="w-11 h-11 rounded-full bg-gradient-to-br from-loop-purple/25 to-loop-purple/10 flex items-center justify-center flex-shrink-0">
-                      <Building2 size={18} className="text-loop-purple" />
+                      <User size={18} className="text-loop-purple" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
@@ -379,27 +386,51 @@ export default function MessagesPage() {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Input */}
+          {/* Input or Request Actions */}
           <div className="sticky bottom-0 bg-white border-t border-loop-gray/50 px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))]">
-            <form onSubmit={handleSend} className="flex items-center gap-2">
-              <input
-                ref={inputRef}
-                type="text"
-                value={newMsg}
-                onChange={e => setNewMsg(e.target.value)}
-                placeholder="Type a message..."
-                className="flex-1 px-4 py-2.5 rounded-full border border-loop-gray bg-loop-gray/20 text-sm placeholder:text-loop-green/30 focus:outline-none focus:ring-2 focus:ring-loop-purple/20"
-                autoFocus
-              />
-              <button
-                type="submit"
-                disabled={!newMsg.trim() || sending}
-                className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${newMsg.trim() ? 'bg-loop-purple text-white hover:shadow-md' : 'bg-loop-gray text-loop-green/30'
-                  }`}
-              >
-                {sending ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
-              </button>
-            </form>
+            {activeConvo.status === 'pending' ? (
+              activeConvo.senderId === user.uid ? (
+                <div className="w-full py-2.5 text-center text-sm font-semibold text-loop-green/50 bg-loop-gray/20 border border-loop-gray rounded-xl">
+                  Waiting for user to accept your request...
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleDeclineRequest}
+                    disabled={deletingChat}
+                    className="flex-1 py-2.5 rounded-xl border-2 border-loop-red/20 text-loop-red font-semibold text-sm hover:bg-loop-red/5 transition-all"
+                  >
+                    {deletingChat ? 'Declining...' : 'Decline'}
+                  </button>
+                  <button
+                    onClick={handleAcceptRequest}
+                    className="flex-1 py-2.5 rounded-xl bg-loop-purple text-white font-semibold text-sm shadow-md hover:shadow-lg transition-all"
+                  >
+                    Accept Request
+                  </button>
+                </div>
+              )
+            ) : (
+              <form onSubmit={handleSend} className="flex items-center gap-2">
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={newMsg}
+                  onChange={e => setNewMsg(e.target.value)}
+                  placeholder="Type a message..."
+                  className="flex-1 px-4 py-2.5 rounded-full border border-loop-gray bg-loop-gray/20 text-sm placeholder:text-loop-green/30 focus:outline-none focus:ring-2 focus:ring-loop-purple/20"
+                  autoFocus
+                />
+                <button
+                  type="submit"
+                  disabled={!newMsg.trim() || sending}
+                  className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${newMsg.trim() ? 'bg-loop-purple text-white hover:shadow-md' : 'bg-loop-gray text-loop-green/30'
+                    }`}
+                >
+                  {sending ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+                </button>
+              </form>
+            )}
           </div>
         </div>
       )}
@@ -442,12 +473,16 @@ export default function MessagesPage() {
                     className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-loop-purple/5 transition-colors text-left"
                   >
                     <div className="w-10 h-10 rounded-full bg-loop-purple/15 flex items-center justify-center">
-                      <Building2 size={16} className="text-loop-purple" />
+                      {inner.role === 'Inner' ? <Building2 size={16} className="text-loop-purple" /> : <User size={16} className="text-loop-purple" />}
                     </div>
                     <div>
                       <p className="text-sm font-semibold">{inner.name}</p>
                       <p className="text-xs text-loop-green/40 flex items-center gap-1">
-                        <Shield size={9} /> Verified Inner
+                        {inner.role === 'Inner' && inner.isVerified ? (
+                          <><Shield size={9} /> Verified Inner</>
+                        ) : (
+                          <><User size={9} /> Looper</>
+                        )}
                       </p>
                     </div>
                   </button>

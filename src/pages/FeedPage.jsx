@@ -5,6 +5,7 @@ import { db } from '../lib/firebase';
 import { useAuth } from '../contexts/AuthContext';
 import CreatePost from '../components/CreatePost';
 import PostCard from '../components/PostCard';
+import NotificationBell from '../components/NotificationBell';
 import { MapPin, Plus, X, Sparkles, Loader2, Search, Lock } from 'lucide-react';
 
 export default function FeedPage() {
@@ -64,15 +65,18 @@ export default function FeedPage() {
     <div className="min-h-screen bg-loop-gray">
       <nav className="sticky top-0 z-40 bg-white/90 backdrop-blur-xl border-b border-loop-gray/50">
         <div className="max-w-2xl mx-auto flex items-center justify-between px-4 py-3">
-          <Link to="/" className="font-display text-xl font-extrabold text-loop-green">
+          <button onClick={() => window.location.reload()} className="font-display text-xl font-extrabold text-loop-green hover:opacity-70 transition-opacity cursor-pointer">
             Inner<span className="bg-gradient-to-r from-loop-purple to-loop-red bg-clip-text text-transparent">Loop</span>
-          </Link>
-          {isVerifiedInner && (
-            <button onClick={() => setInnerOnly(!innerOnly)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${innerOnly ? 'bg-loop-purple text-white shadow-md' : 'bg-loop-purple/10 text-loop-purple'}`}>
-              <Lock size={12} /> Inner Loop
-            </button>
-          )}
+          </button>
+          <div className="flex items-center gap-2">
+            {isVerifiedInner && (
+              <button onClick={() => setInnerOnly(!innerOnly)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${innerOnly ? 'bg-loop-purple text-white shadow-md' : 'bg-loop-purple/10 text-loop-purple'}`}>
+                <Lock size={12} /> Inner Loop
+              </button>
+            )}
+            <NotificationBell />
+          </div>
         </div>
       </nav>
 
