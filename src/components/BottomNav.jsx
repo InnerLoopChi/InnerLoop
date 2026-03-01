@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import {
@@ -38,47 +39,49 @@ export default function BottomNav() {
   }
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-t border-loop-gray/50">
-      <div className="max-w-2xl mx-auto flex items-center justify-around px-1 py-1.5">
-        {tabs.map(tab => {
-          const isActive = path === tab.path;
-          const Icon = tab.icon;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => navigate(tab.path)}
-              className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-xl transition-all duration-200 ${isActive
-                ? 'text-loop-purple'
-                : 'text-loop-green/35 hover:text-loop-green/60'
-                }`}
-            >
-              <div className={`relative ${isActive ? 'scale-110' : ''} transition-transform`}>
-                <Icon size={18} strokeWidth={isActive ? 2.5 : 2} />
-                {isActive && (
-                  <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-loop-purple" />
-                )}
-              </div>
-              <span className={`text-[9px] leading-tight ${isActive ? 'font-bold' : 'font-medium'}`}>
-                {tab.label}
-              </span>
-            </button>
-          );
-        })}
-        {/* Logout */}
-        <button
-          onClick={() => setShowLogoutConfirm(true)}
-          className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-xl text-loop-green/35 hover:text-loop-red transition-all duration-200"
-        >
-          <LogOut size={18} strokeWidth={2} />
-          <span className="text-[9px] leading-tight font-medium">Logout</span>
-        </button>
-      </div>
-      <div className="h-[env(safe-area-inset-bottom)]" />
+    <>
+      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-t border-loop-gray/50">
+        <div className="max-w-2xl mx-auto flex items-center justify-around px-1 py-1.5">
+          {tabs.map(tab => {
+            const isActive = path === tab.path;
+            const Icon = tab.icon;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => navigate(tab.path)}
+                className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-xl transition-all duration-200 ${isActive
+                  ? 'text-loop-purple'
+                  : 'text-loop-green/35 hover:text-loop-green/60'
+                  }`}
+              >
+                <div className={`relative ${isActive ? 'scale-110' : ''} transition-transform`}>
+                  <Icon size={18} strokeWidth={isActive ? 2.5 : 2} />
+                  {isActive && (
+                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-loop-purple" />
+                  )}
+                </div>
+                <span className={`text-[9px] leading-tight ${isActive ? 'font-bold' : 'font-medium'}`}>
+                  {tab.label}
+                </span>
+              </button>
+            );
+          })}
+          {/* Logout */}
+          <button
+            onClick={() => setShowLogoutConfirm(true)}
+            className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-xl text-loop-green/35 hover:text-loop-red transition-all duration-200"
+          >
+            <LogOut size={18} strokeWidth={2} />
+            <span className="text-[9px] leading-tight font-medium">Logout</span>
+          </button>
+        </div>
+        <div className="h-[env(safe-area-inset-bottom)]" />
+      </nav>
 
-      {/* Logout confirmation */}
-      {showLogoutConfirm && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center px-4">
-          <div className="absolute inset-0 bg-loop-green/40 backdrop-blur-sm" onClick={() => setShowLogoutConfirm(false)} />
+      {/* Logout confirmation — portaled to body so it's not clipped by nav */}
+      {showLogoutConfirm && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowLogoutConfirm(false)} />
           <div className="relative bg-white rounded-2xl shadow-2xl p-6 max-w-xs w-full text-center space-y-4 animate-fadeIn">
             <div className="w-14 h-14 mx-auto rounded-full bg-loop-red/10 flex items-center justify-center">
               <LogOut size={24} className="text-loop-red" />
@@ -96,18 +99,20 @@ export default function BottomNav() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
-      {/* Logging out overlay */}
-      {loggingOut && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-white/80 backdrop-blur-sm">
+      {/* Logging out overlay — portaled to body */}
+      {loggingOut && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-white/80 backdrop-blur-sm">
           <div className="text-center space-y-3">
             <div className="w-8 h-8 mx-auto border-4 border-loop-purple/30 border-t-loop-purple rounded-full animate-spin" />
             <p className="text-sm font-semibold text-loop-green/60">Signing out...</p>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
-    </nav>
+    </>
   );
 }
