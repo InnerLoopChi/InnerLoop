@@ -10,6 +10,7 @@ import {
   query,
   where,
   updateDoc,
+  deleteDoc,
   Timestamp,
 } from 'firebase/firestore';
 import { db } from '../lib/firebase';
@@ -24,8 +25,8 @@ import {
   X,
   Loader2,
   Plus,
-  Check,
   CheckCheck,
+  Trash2,
 } from 'lucide-react';
 
 export default function MessagesPage() {
@@ -38,6 +39,7 @@ export default function MessagesPage() {
   const [messages, setMessages] = useState([]);
   const [newMsg, setNewMsg] = useState('');
   const [sending, setSending] = useState(false);
+  const [deletingChat, setDeletingChat] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showNewConvo, setShowNewConvo] = useState(false);
   const [inners, setInners] = useState([]);
@@ -159,6 +161,28 @@ export default function MessagesPage() {
     }
   }
 
+  async function handleClearChat() {
+    if (!activeConvo || !window.confirm("Delete this entire conversation?")) return;
+    setDeletingChat(true);
+    try {
+      await deleteDoc(doc(db, 'conversations', activeConvo.id));
+      setActiveConvo(null);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setDeletingChat(false);
+    }
+  }
+
+  async function handleDeleteMessage(msgId) {
+    if (!activeConvo || !window.confirm("Delete this message?")) return;
+    try {
+      await deleteDoc(doc(db, 'conversations', activeConvo.id, 'messages', msgId));
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
   // Start new conversation
   async function startConvo(otherUser) {
     // Check local state first
@@ -254,7 +278,11 @@ export default function MessagesPage() {
             <button onClick={() => setShowNewConvo(true)} className="w-9 h-9 rounded-full bg-loop-purple text-white flex items-center justify-center hover:shadow-md transition-all">
               <Plus size={16} />
             </button>
-          ) : <div className="w-9" />}
+          ) : (
+            <button onClick={handleClearChat} disabled={deletingChat} className="w-9 h-9 rounded-full text-loop-red/70 hover:bg-loop-red/10 flex items-center justify-center transition-all disabled:opacity-50">
+              {deletingChat ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+            </button>
+          )}
         </div>
       </nav>
 
@@ -326,10 +354,19 @@ export default function MessagesPage() {
             {messages.map((msg) => {
               const isMe = msg.senderID === user.uid;
               return (
-                <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+                <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'} group relative`}>
+                  {isMe && (
+                    <button
+                      onClick={() => handleDeleteMessage(msg.id)}
+                      className="absolute right-[calc(75%+10px)] top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 p-2 text-loop-red/60 hover:text-loop-red hover:bg-loop-red/5 rounded-full transition-all"
+                      title="Delete message"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  )}
                   <div className={`max-w-[75%] rounded-2xl px-4 py-2.5 ${isMe
-                    ? 'bg-loop-purple text-white rounded-br-md'
-                    : 'bg-white border border-loop-gray/50 rounded-bl-md'
+                    ? 'bg-loop-purple text-white rounded-br-md relative z-10'
+                    : 'bg-white border border-loop-gray/50 rounded-bl-md relative z-10'
                     }`}>
                     <p className="text-sm leading-relaxed">{msg.text}</p>
                     <p className={`text-[10px] mt-1 ${isMe ? 'text-white/50' : 'text-loop-green/30'}`}>

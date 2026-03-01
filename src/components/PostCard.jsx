@@ -4,13 +4,15 @@ import { doc, updateDoc, deleteDoc, getDoc, arrayUnion, increment } from 'fireba
 import { db } from '../lib/firebase';
 import {
   Heart, Building2, Shield, Clock, Users, ArrowRight, Zap,
-  Check, Loader2, Trash2, MoreHorizontal, ClipboardCheck, X, CheckCircle2, CalendarDays, Timer,
+  Check, Loader2, Trash2, Edit2, MoreHorizontal, ClipboardCheck, X, CheckCircle2, CalendarDays, Timer,
 } from 'lucide-react';
+import CreatePost from './CreatePost';
 
 export default function PostCard({ post, currentUser }) {
   const [showMenu, setShowMenu] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [showApply, setShowApply] = useState(false);
+  const [showEdit, setShowEdit] = useState(false);
   const toast = useToast();
 
   const isTask = post.taskCapacity != null && post.taskCapacity > 0;
@@ -53,6 +55,10 @@ export default function PostCard({ post, currentUser }) {
               <>
                 <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
                 <div className="absolute right-0 top-10 z-20 bg-white rounded-xl shadow-lg border py-1 min-w-[130px]">
+                  <button onClick={() => { setShowMenu(false); setShowEdit(true); }}
+                    className="w-full flex items-center gap-2 px-4 py-2 text-sm text-loop-green hover:bg-loop-gray">
+                    <Edit2 size={14} /> Edit Post
+                  </button>
                   <button onClick={() => { setShowMenu(false); handleDelete(); }} disabled={deleting}
                     className="w-full flex items-center gap-2 px-4 py-2 text-sm text-loop-red hover:bg-loop-red/5">
                     <Trash2 size={14} /> {deleting ? 'Deleting...' : 'Delete'}
@@ -147,6 +153,15 @@ export default function PostCard({ post, currentUser }) {
 
       {/* Apply Modal */}
       {showApply && <ApplyModal post={post} currentUser={currentUser} isFull={isFull} onClose={() => setShowApply(false)} />}
+
+      {/* Edit Modal */}
+      {showEdit && (
+        <CreatePost
+          onClose={() => setShowEdit(false)}
+          isInnerOnly={post.isInnerOnly}
+          editPost={post}
+        />
+      )}
     </div>
   );
 }

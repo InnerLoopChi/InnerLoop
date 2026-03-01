@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { collection, addDoc, Timestamp } from 'firebase/firestore';
+import { collection, addDoc, doc, updateDoc, Timestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
@@ -13,31 +13,49 @@ const MAX_TAGS = 3;
 const MAX_TAG_LEN = 20;
 const MAX_REQUIREMENTS = 6;
 
-export default function CreatePost({ onClose, isInnerOnly = false }) {
+export default function CreatePost({ onClose, isInnerOnly = false, editPost = null }) {
   const { user, profile } = useAuth();
   const toast = useToast();
 
-  const [content, setContent] = useState('');
+  const isEditing = !!editPost;
+  const isInner = profile?.role === 'Inner';
+  const isVerifiedInner = isInner && profile?.isVerified;
+
+  const [content, setContent] = useState(editPost?.content || '');
   const [tagInput, setTagInput] = useState('');
-  const [tags, setTags] = useState([]);
-  const [isTask, setIsTask] = useState(false);
-  const [taskCapacity, setTaskCapacity] = useState(3);
-  const [hoursReward, setHoursReward] = useState(1);
-  const [innerPost, setInnerPost] = useState(isInnerOnly);
-  const [requirements, setRequirements] = useState([]);
+  const [tags, setTags] = useState(editPost?.tags || []);
+  const [isTask, setIsTask] = useState(isEditing ? (editPost?.taskCapacity > 0) : false);
+  const [taskCapacity, setTaskCapacity] = useState(editPost?.taskCapacity || 3);
+  const [hoursReward, setHoursReward] = useState(editPost?.hoursReward || 1);
+  const [innerPost, setInnerPost] = useState(isEditing ? editPost.isInnerOnly : isInnerOnly);
+  const [requirements, setRequirements] = useState(editPost?.requirements || []);
   const [reqInput, setReqInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Schedule state
-  const [scheduleType, setScheduleType] = useState('single'); // single | range | ongoing
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  const [startTime, setStartTime] = useState('');
-  const [endTime, setEndTime] = useState('');
+  // Schedule state prep
+  let initType = 'single';
+  let initStart = '';
+  let initEnd = '';
+  let initStartTime = '';
+  let initEndTime = '';
 
-  const isInner = profile?.role === 'Inner';
-  const isVerifiedInner = isInner && profile?.isVerified;
+  if (isEditing && editPost.schedule) {
+    const s = editPost.schedule;
+    initType = s.type || 'single';
+    if (s.ongoing) initType = 'ongoing';
+    if (s.startDate) initStart = s.startDate.toDate().toISOString().split('T')[0];
+    if (s.endDate) initEnd = s.endDate.toDate().toISOString().split('T')[0];
+    initStartTime = s.startTime || '';
+    initEndTime = s.endTime || '';
+  }
+
+  const [scheduleType, setScheduleType] = useState(initType);
+  const [startDate, setStartDate] = useState(initStart);
+  const [endDate, setEndDate] = useState(initEnd);
+  const [startTime, setStartTime] = useState(initStartTime);
+  const [endTime, setEndTime] = useState(initEndTime);
+
   const charsLeft = MAX_CHARS - content.length;
   const today = new Date().toISOString().split('T')[0];
 
@@ -83,30 +101,41 @@ export default function CreatePost({ onClose, isInnerOnly = false }) {
         ongoing: scheduleType === 'ongoing',
       };
 
-      await addDoc(collection(db, 'posts'), {
-        authorID: user.uid,
-        authorName: profile?.name || 'Anonymous',
-        authorRole: profile?.role || 'Looper',
+      const postData = {
         content: trimmed,
         tags,
-        postTime: Timestamp.now(),
         isInnerOnly: innerPost,
         taskCapacity: isTask ? Number(taskCapacity) : null,
-        taskFilled: isTask ? 0 : null,
-        waitlist: isTask ? [] : null,
-        joinedUsers: isTask ? [] : null,
         hoursReward: isTask ? Number(hoursReward) : null,
         schedule,
         requirements: isTask && requirements.length > 0 ? requirements : [],
-        applicants: isTask ? [] : null,
-        status: 'active',
-        location: null,
-      });
-      toast.success('Posted!');
+      };
+
+      if (isEditing) {
+        // Edit mode updates the existing document
+        postData.editedAt = Timestamp.now();
+        await updateDoc(doc(db, 'posts', editPost.id), postData);
+        toast.success('Post updated!');
+      } else {
+        // Create mode creates a new document
+        postData.authorID = user.uid;
+        postData.authorName = profile?.name || 'Anonymous';
+        postData.authorRole = profile?.role || 'Looper';
+        postData.postTime = Timestamp.now();
+        postData.taskFilled = isTask ? 0 : null;
+        postData.waitlist = isTask ? [] : null;
+        postData.joinedUsers = isTask ? [] : null;
+        postData.applicants = isTask ? [] : null;
+        postData.status = 'active';
+        postData.location = null;
+
+        await addDoc(collection(db, 'posts'), postData);
+        toast.success('Posted!');
+      }
       onClose();
     } catch (err) {
       console.error(err);
-      setError('Failed to post. Try again.');
+      setError('Failed to save. Try again.');
     } finally { setLoading(false); }
   }
 
@@ -115,7 +144,9 @@ export default function CreatePost({ onClose, isInnerOnly = false }) {
       <div className="absolute inset-0 bg-loop-green/40 backdrop-blur-sm" onClick={onClose} />
       <div className="relative w-full max-w-lg bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl max-h-[90vh] overflow-y-auto animate-fadeIn">
         <div className="sticky top-0 bg-white/95 backdrop-blur-sm border-b border-loop-gray/50 px-6 py-4 flex items-center justify-between rounded-t-3xl z-10">
-          <h2 className="font-display text-lg font-bold">{innerPost ? 'Inner Loop Post' : 'New Post'}</h2>
+          <h2 className="font-display text-lg font-bold">
+            {isEditing ? (innerPost ? 'Edit Inner Loop Post' : 'Edit Post') : (innerPost ? 'Inner Loop Post' : 'New Post')}
+          </h2>
           <button onClick={onClose} className="w-8 h-8 rounded-full bg-loop-gray flex items-center justify-center"><X size={16} /></button>
         </div>
 
@@ -279,7 +310,7 @@ export default function CreatePost({ onClose, isInnerOnly = false }) {
             className={`w-full flex items-center justify-center gap-2 px-6 py-3 rounded-full font-semibold text-sm text-white transition-all
               ${innerPost ? 'bg-loop-purple' : 'bg-loop-green'}
               ${loading || !content.trim() ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-lg hover:scale-[1.02]'}`}>
-            {loading ? <Loader2 size={18} className="animate-spin" /> : <><Send size={16} /> Post</>}
+            {loading ? <Loader2 size={18} className="animate-spin" /> : <><Send size={16} /> {isEditing ? 'Save Changes' : 'Post'}</>}
           </button>
         </form>
       </div>
