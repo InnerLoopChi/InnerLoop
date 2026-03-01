@@ -8,7 +8,19 @@ InnerLoop bridges the gap between everyday people (**Loopers**) and trusted loca
 
 ## Quick Start (Run Locally)
 
-### Prerequisites
+### One-Click Setup Scripts
+
+The fastest way — handles clone, install, Firebase config prompts, and launches the dev server:
+
+| Platform | Command |
+|---|---|
+| **Windows (CMD)** | Double-click `start-windows.bat` or run it in Command Prompt |
+| **Windows (PowerShell)** | `powershell -ExecutionPolicy Bypass -File start-windows.ps1` |
+| **Git Bash / WSL / macOS / Linux** | `bash start.sh` |
+
+### Manual Setup
+
+#### Prerequisites
 
 - **Node.js** 18+ — [Download](https://nodejs.org/)
 - **npm** (comes with Node)

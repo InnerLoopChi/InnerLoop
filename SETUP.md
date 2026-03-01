@@ -1,5 +1,30 @@
 # Local Setup — 5 Minutes
 
+## One-Click Start (Easiest)
+
+We have scripts that handle everything — cloning, installing, Firebase config, and launching.
+
+**Windows (Command Prompt):**
+```
+start-windows.bat
+```
+
+**Windows (PowerShell / Windows Terminal):**
+```powershell
+powershell -ExecutionPolicy Bypass -File start-windows.ps1
+```
+
+**Git Bash / WSL / macOS / Linux:**
+```bash
+bash start.sh
+```
+
+The script will prompt you for your Firebase credentials, then launch the app.
+
+---
+
+## Manual Setup (Step by Step)
+
 Copy-paste these commands to get InnerLoop running on your machine.
 
 ---
