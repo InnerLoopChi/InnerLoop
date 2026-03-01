@@ -1,5 +1,34 @@
 # InnerLoop — CHANGELOG
 
+## [0.4.0] — 2026-02-28 — Chunk 4: Profile & Loop Wallet + Review System
+
+### Overview
+Built the Profile page with Loop Wallet (Star Rating, Verified Hours, Loop Credits), editable interest tags, review display, and the ReviewModal component for submitting reviews with the waitlist 2× multiplier logic.
+
+### Files Created / Modified
+
+| File | Action | Purpose |
+|---|---|---|
+| `src/pages/ProfilePage.jsx` | **Created** | Profile page — gradient banner, avatar, name/role/verified badge, editable tags, Loop Wallet (3-stat grid), recent reviews list with star display, sign out |
+| `src/components/ReviewModal.jsx` | **Created** | Review submission modal — interactive star picker (1–5 with hover), hours display with 2× waitlist multiplier, optional comment, creates Firestore `reviews` doc + updates reviewed user's `starRating`, `verifiedHours`, `loopCredits` |
+| `src/App.jsx` | **Modified** | Added `/profile` protected route, imported ProfilePage |
+| `src/pages/FeedPage.jsx` | **Modified** | Profile avatar button now navigates to `/profile` |
+
+### Profile Features
+- **Loop Wallet**: 3-card grid showing Star Rating (with visual stars), Verified Hours, Loop Credits
+- **Editable Tags**: Click edit → add/remove interest tags → saves to Firestore
+- **Reviews Feed**: Real-time listener on `reviews` collection filtered by `reviewedID`
+- **Waitlist Badge**: Reviews show "2× waitlist bonus" when `wasWaitlisted: true`
+
+### Review System
+- **Star Rating**: Interactive 1–5 star picker with hover preview and label
+- **Hours Multiplier**: If user was waitlisted, hours are automatically doubled
+- **Credits Multiplier**: Waitlisted users earn 2 credits instead of 1
+- **Running Average**: Star rating updates as weighted running average on the user doc
+- **Firestore Writes**: Creates `reviews` doc + atomically updates `users` doc (starRating, verifiedHours, loopCredits)
+
+---
+
 ## [0.3.0] — 2026-02-28 — Chunk 3: Local Feed + Posts + Real-time Firestore
 
 ### Overview

@@ -112,7 +112,7 @@ export default function FeedPage() {
 
             {/* Profile link */}
             <button
-              onClick={() => {}}
+              onClick={() => navigate('/profile')}
               className="w-9 h-9 rounded-full bg-loop-gray flex items-center justify-center hover:bg-loop-gray/80 transition-colors"
               title={profile?.name}
             >

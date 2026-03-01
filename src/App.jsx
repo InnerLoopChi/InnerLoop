@@ -5,6 +5,7 @@ import LandingPage from './pages/LandingPage';
 import SignUpPage from './pages/SignUpPage';
 import LoginPage from './pages/LoginPage';
 import FeedPage from './pages/FeedPage';
+import ProfilePage from './pages/ProfilePage';
 
 // Protected route — redirects to login if not authenticated
 function ProtectedRoute({ children }) {
@@ -48,6 +49,16 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <FeedPage />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Protected — profile */}
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <ProfilePage />
           </ProtectedRoute>
         }
       />
