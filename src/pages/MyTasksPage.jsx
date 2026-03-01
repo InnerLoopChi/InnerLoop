@@ -28,8 +28,8 @@ export default function MyTasksPage() {
     // Raw collection listener — no orderBy, no where, no index needed
     const unsub = onSnapshot(collection(db, 'posts'), (snap) => {
       let data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      // Filter to tasks only
-      data = data.filter(t => t.taskCapacity > 0);
+      // Filter to tasks only (handle legacy string capacities)
+      data = data.filter(t => t.taskCapacity && Number(t.taskCapacity) > 0);
       // Inner: show own tasks. Looper: show tasks they applied to
       if (isInner) {
         data = data.filter(t => t.authorID === user.uid);
