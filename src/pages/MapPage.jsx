@@ -131,7 +131,17 @@ export default function MapPage() {
   }, [mapReady, posts, getPostsForHood]);
 
   const selectedPosts = selectedHood ? getPostsForHood(selectedHood.name) : [];
-  const filteredHoods = searchTerm ? NEIGHBORHOODS.filter(h => h.name.toLowerCase().includes(searchTerm.toLowerCase())) : NEIGHBORHOODS;
+  const filteredHoods = searchTerm
+    ? NEIGHBORHOODS
+      .filter(h => h.name.toLowerCase().includes(searchTerm.toLowerCase()))
+      .sort((a, b) => {
+        const term = searchTerm.toLowerCase();
+        const aStarts = a.name.toLowerCase().startsWith(term) ? 0 : 1;
+        const bStarts = b.name.toLowerCase().startsWith(term) ? 0 : 1;
+        if (aStarts !== bStarts) return aStarts - bStarts;
+        return a.name.toLowerCase().indexOf(term) - b.name.toLowerCase().indexOf(term);
+      })
+    : NEIGHBORHOODS;
 
   function clearSelection() {
     setSelectedHood(null);

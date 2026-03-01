@@ -34,7 +34,8 @@ export default function MyTasksPage() {
       if (isInner) {
         data = data.filter(t => t.authorID === user.uid);
       } else {
-        data = data.filter(t => t.applicants?.some(a => a.uid === user.uid) || t.joinedUsers?.includes(user.uid));
+        // Loopers see tasks they authored OR applied to
+        data = data.filter(t => t.authorID === user.uid || t.applicants?.some(a => a.uid === user.uid) || t.joinedUsers?.includes(user.uid));
       }
       setTasks(data);
       setLoading(false);
@@ -83,7 +84,7 @@ export default function MyTasksPage() {
               isExpanded={expandedTask === task.id}
               onToggle={() => setExpandedTask(expandedTask === task.id ? null : task.id)}
               onMarkComplete={() => markComplete(task.id)}
-              onReview={(uid, name, hrs, wl) => setReviewTarget({ userId: uid, userName: name, hoursReward: hrs, wasWaitlisted: wl })}
+              onReview={(uid, name, hrs, wl) => setReviewTarget({ userId: uid, userName: name, hoursReward: hrs, wasWaitlisted: wl, postId: task.id })}
               timeAgo={timeAgo} currentUserId={user?.uid} />
           ))
         )}
@@ -92,7 +93,8 @@ export default function MyTasksPage() {
       {reviewTarget && (
         <ReviewModal onClose={() => setReviewTarget(null)}
           reviewedUserID={reviewTarget.userId} reviewedUserName={reviewTarget.userName}
-          hoursForTask={reviewTarget.hoursReward} wasWaitlisted={reviewTarget.wasWaitlisted} />
+          hoursForTask={reviewTarget.hoursReward} wasWaitlisted={reviewTarget.wasWaitlisted}
+          postId={reviewTarget.postId} />
       )}
     </div>
   );
@@ -102,6 +104,7 @@ export default function MyTasksPage() {
 function TaskCard({ task, isInner, isExpanded, onToggle, onMarkComplete, onReview, timeAgo, currentUserId }) {
   const toast = useToast();
   const isComplete = task.status === 'completed';
+  const isAuthor = task.authorID === currentUserId;
   const isFull = (task.taskFilled || 0) >= task.taskCapacity;
   const fillPct = Math.min(100, ((task.taskFilled || 0) / task.taskCapacity) * 100);
   const pendingApplicants = task.applicants?.filter(a => a.status === 'pending') || [];
@@ -262,8 +265,8 @@ function TaskCard({ task, isInner, isExpanded, onToggle, onMarkComplete, onRevie
           {/* LOOPER VIEW: My application status */}
           {!isInner && myApp && (
             <div className={`p-4 rounded-xl text-center ${myApp.status === 'accepted' ? 'bg-green-50 border border-green-200' :
-                myApp.status === 'rejected' ? 'bg-loop-gray/30 border border-loop-gray/50' :
-                  'bg-loop-blue/10 border border-loop-blue/20'
+              myApp.status === 'rejected' ? 'bg-loop-gray/30 border border-loop-gray/50' :
+                'bg-loop-blue/10 border border-loop-blue/20'
               }`}>
               {myApp.status === 'accepted' ? (
                 <p className="text-sm font-semibold text-green-700 flex items-center justify-center gap-2"><CheckCircle2 size={16} /> You've been accepted!</p>

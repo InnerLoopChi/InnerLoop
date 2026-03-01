@@ -48,7 +48,11 @@ export default function FeedPage() {
   }
   if (searchTag.trim()) {
     const term = searchTag.toLowerCase();
-    posts = posts.filter(p => p.tags?.some(t => t.toLowerCase().includes(term)));
+    posts = posts.filter(p =>
+      p.tags?.some(t => t.toLowerCase().includes(term)) ||
+      p.content?.toLowerCase().includes(term) ||
+      p.authorName?.toLowerCase().includes(term)
+    );
   }
 
   return (
@@ -60,8 +64,7 @@ export default function FeedPage() {
           </Link>
           {isVerifiedInner && (
             <button onClick={() => setInnerOnly(!innerOnly)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
-                innerOnly ? 'bg-loop-purple text-white shadow-md' : 'bg-loop-purple/10 text-loop-purple'}`}>
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${innerOnly ? 'bg-loop-purple text-white shadow-md' : 'bg-loop-purple/10 text-loop-purple'}`}>
               <Lock size={12} /> Inner Loop
             </button>
           )}
@@ -84,7 +87,7 @@ export default function FeedPage() {
           </div>
           <div className="relative">
             <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-loop-green/30" />
-            <input type="text" value={searchTag} onChange={e => setSearchTag(e.target.value)} placeholder="Search by tag..."
+            <input type="text" value={searchTag} onChange={e => setSearchTag(e.target.value)} placeholder="Search posts, tags, or names..."
               className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-loop-gray bg-white text-sm placeholder:text-loop-green/30 focus:outline-none focus:ring-2 focus:ring-loop-purple/20" />
             {searchTag && <button onClick={() => setSearchTag('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-loop-green/30"><X size={16} /></button>}
           </div>
