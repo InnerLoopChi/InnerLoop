@@ -10,6 +10,7 @@ import ProfilePage from './pages/ProfilePage';
 import MyTasksPage from './pages/MyTasksPage';
 import MessagesPage from './pages/MessagesPage';
 import SettingsPage from './pages/SettingsPage';
+import SeedPage from './pages/SeedPage';
 import BottomNav from './components/BottomNav';
 
 // Protected route — redirects to login if not authenticated
@@ -102,6 +103,9 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
+
+      {/* Seed demo data (public — one-time use) */}
+      <Route path="/seed" element={<SeedPage />} />
 
       {/* Catch-all */}
       <Route path="*" element={<Navigate to="/" />} />

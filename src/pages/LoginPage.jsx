@@ -7,7 +7,18 @@ import {
   EyeOff,
   AlertCircle,
   Loader2,
+  Heart,
+  Building2,
+  Shield,
+  Zap,
 } from 'lucide-react';
+
+const DEMO_ACCOUNTS = [
+  { email: 'looper@demo.com', password: 'demo1234', name: 'Maria G.', role: 'Looper', desc: 'Active volunteer, 24 hrs', color: 'loop-red', icon: Heart },
+  { email: 'looper2@demo.com', password: 'demo1234', name: 'Darius W.', role: 'Looper', desc: 'Community helper, 10 hrs', color: 'loop-red', icon: Heart },
+  { email: 'inner@demo.com', password: 'demo1234', name: 'Pilsen Community Center', role: 'Inner ✓', desc: 'Verified org, posts tasks', color: 'loop-purple', icon: Building2 },
+  { email: 'inner2@demo.com', password: 'demo1234', name: 'Logan Square Food Pantry', role: 'Inner ✓', desc: 'Verified org, DMs enabled', color: 'loop-purple', icon: Building2 },
+];
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -18,6 +29,7 @@ export default function LoginPage() {
   const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [demoLoading, setDemoLoading] = useState(null);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -40,6 +52,23 @@ export default function LoginPage() {
       }
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleDemoLogin(account, index) {
+    setError('');
+    setDemoLoading(index);
+    try {
+      await login({ email: account.email, password: account.password });
+      navigate('/feed');
+    } catch (err) {
+      if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
+        setError('Demo account not found. Visit /seed first to create demo data.');
+      } else {
+        setError(err.message || 'Demo login failed.');
+      }
+    } finally {
+      setDemoLoading(null);
     }
   }
 
@@ -131,6 +160,54 @@ export default function LoginPage() {
               )}
             </button>
           </form>
+        </div>
+
+        {/* Demo Quick Login */}
+        <div className="mt-6 bg-white rounded-3xl shadow-sm border border-loop-gray/50 p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Zap size={16} className="text-loop-purple" />
+            <h3 className="font-display text-sm font-bold">Quick Demo Login</h3>
+            <span className="text-xs text-loop-green/30">— one click</span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2">
+            {DEMO_ACCOUNTS.map((acct, i) => {
+              const Icon = acct.icon;
+              return (
+                <button
+                  key={acct.email}
+                  onClick={() => handleDemoLogin(acct, i)}
+                  disabled={demoLoading !== null}
+                  className={`text-left p-3 rounded-xl border transition-all duration-200 hover:shadow-sm ${
+                    demoLoading === i 
+                      ? 'border-loop-purple/30 bg-loop-purple/5' 
+                      : 'border-loop-gray/50 hover:border-loop-purple/20'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className={`w-7 h-7 rounded-full flex items-center justify-center ${
+                      acct.role.includes('Inner') ? 'bg-loop-purple/15' : 'bg-loop-red/15'
+                    }`}>
+                      {demoLoading === i 
+                        ? <Loader2 size={12} className="animate-spin text-loop-purple" />
+                        : <Icon size={12} className={acct.role.includes('Inner') ? 'text-loop-purple' : 'text-loop-red'} />
+                      }
+                    </div>
+                    <span className="text-xs font-semibold truncate">{acct.name}</span>
+                  </div>
+                  <div className="flex items-center gap-1 ml-9">
+                    <span className={`text-[10px] font-medium ${acct.role.includes('Inner') ? 'text-loop-purple' : 'text-loop-red'}`}>
+                      {acct.role}
+                    </span>
+                    <span className="text-[10px] text-loop-green/30">· {acct.desc}</span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+          <p className="text-[11px] text-loop-green/30 text-center mt-3">
+            No demo accounts? <Link to="/seed" className="text-loop-purple font-semibold hover:underline">Seed demo data first</Link>
+          </p>
         </div>
 
         <p className="text-center text-sm text-loop-green/40 mt-6">
