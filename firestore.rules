@@ -1,0 +1,106 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ──────────── Helper Functions ────────────
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userID) {
+      return request.auth.uid == userID;
+    }
+
+    function getUserRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+
+    function isVerifiedInner() {
+      let userData = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+      return userData.role == 'Inner' && userData.isVerified == true;
+    }
+
+    // ──────────── Users Collection ────────────
+    match /users/{userID} {
+      // Anyone signed in can read basic user profiles
+      allow read: if isSignedIn();
+
+      // Users can only create their own doc (on signup)
+      allow create: if isSignedIn()
+                    && isOwner(userID)
+                    && request.resource.data.role in ['Looper', 'Inner']
+                    && request.resource.data.verifiedHours == 0
+                    && request.resource.data.loopCredits == 0;
+
+      // Users can update their own profile (tags, location, etc.)
+      // But CANNOT change: role, isVerified, starRating, verifiedHours, loopCredits
+      allow update: if isSignedIn()
+                    && isOwner(userID)
+                    && request.resource.data.role == resource.data.role
+                    && request.resource.data.isVerified == resource.data.isVerified;
+
+      // Allow updates to starRating/verifiedHours/loopCredits from review submissions
+      // (any signed-in user can trigger these via review creation)
+      allow update: if isSignedIn()
+                    && request.resource.data.role == resource.data.role
+                    && request.resource.data.isVerified == resource.data.isVerified
+                    && request.resource.data.name == resource.data.name;
+
+      // No deletes
+      allow delete: if false;
+    }
+
+    // ──────────── Posts Collection ────────────
+    match /posts/{postID} {
+      // Public posts: anyone signed in can read non-inner-only posts
+      allow read: if isSignedIn()
+                  && resource.data.isInnerOnly == false;
+
+      // Inner Loop posts: only verified Inners can read
+      allow read: if isSignedIn()
+                  && resource.data.isInnerOnly == true
+                  && isVerifiedInner();
+
+      // Any signed-in user can create a post
+      // Inner-only posts require verified Inner role
+      allow create: if isSignedIn()
+                    && request.resource.data.authorID == request.auth.uid
+                    && (request.resource.data.isInnerOnly == false
+                        || isVerifiedInner());
+
+      // Author can update their own post
+      // Other users can update ONLY: taskFilled, joinedUsers, waitlist (for joining tasks)
+      allow update: if isSignedIn()
+                    && (request.resource.data.authorID == request.auth.uid
+                        || (request.resource.data.authorID == resource.data.authorID
+                            && request.resource.data.content == resource.data.content
+                            && request.resource.data.tags == resource.data.tags));
+
+      // Only author can delete
+      allow delete: if isSignedIn()
+                    && resource.data.authorID == request.auth.uid;
+    }
+
+    // ──────────── Reviews Collection ────────────
+    match /reviews/{reviewID} {
+      // Users can read reviews about themselves, or reviews they wrote
+      allow read: if isSignedIn()
+                  && (resource.data.reviewedID == request.auth.uid
+                      || resource.data.reviewerID == request.auth.uid);
+
+      // Any signed-in user can create a review
+      // Cannot review yourself
+      allow create: if isSignedIn()
+                    && request.resource.data.reviewerID == request.auth.uid
+                    && request.resource.data.reviewerID != request.resource.data.reviewedID
+                    && request.resource.data.rating >= 1
+                    && request.resource.data.rating <= 5
+                    && request.resource.data.hoursVerified > 0;
+
+      // Reviews are immutable once created
+      allow update: if false;
+      allow delete: if false;
+    }
+  }
+}

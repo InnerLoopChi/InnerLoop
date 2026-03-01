@@ -1,5 +1,28 @@
 # InnerLoop — CHANGELOG
 
+## [0.5.0] — 2026-02-28 — Chunk 5: Security Rules + Docs + Local Dev Setup
+
+### Overview
+Added Firestore security rules enforcing auth and privacy, compound query indexes, Firebase CLI config, comprehensive README, and a dead-simple SETUP.md for local development.
+
+### Files Created / Modified
+
+| File | Action | Purpose |
+|---|---|---|
+| `firestore.rules` | **Created** | Firestore security rules — auth required, role-based access, Loopers can't see other Loopers' assignments, Inner Loop posts restricted to verified Inners, reviews immutable, users can't self-modify stats |
+| `firestore.indexes.json` | **Created** | Compound indexes for `posts` (isInnerOnly + postTime) and `reviews` (reviewedID/reviewerID + createdAt) |
+| `firebase.json` | **Created** | Firebase CLI config — Firestore rules/indexes deploy + hosting config with SPA rewrite |
+| `README.md` | **Created** | Full project overview, local setup, file structure, color palette, key concepts, deployment guide, tech stack, contributing |
+| `SETUP.md` | **Created** | 5-minute copy-paste local setup — clone, install, Firebase config, run. Includes troubleshooting table and editing tips |
+| `.gitignore` | **Modified** | Added .env.local, .firebase/, .firebaserc, *.log |
+
+### Security Rules Summary
+- **Users**: Read requires auth. Create only own doc. Can update own profile but not role/verified/stats. Stats updated via review flow.
+- **Posts**: Public posts readable by any auth user. Inner-only posts restricted to verified Inners. Create requires matching authorID. Joinable by others (limited field updates).
+- **Reviews**: Readable by reviewer or reviewed user. Create requires auth, can't self-review, rating 1-5, hours > 0. Immutable once created.
+
+---
+
 ## [0.4.0] — 2026-02-28 — Chunk 4: Profile & Loop Wallet + Review System
 
 ### Overview
