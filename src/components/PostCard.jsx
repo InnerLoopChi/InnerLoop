@@ -4,7 +4,7 @@ import { doc, updateDoc, deleteDoc, arrayUnion, increment } from 'firebase/fires
 import { db } from '../lib/firebase';
 import {
   Heart, Building2, Shield, Clock, Users, ArrowRight, Zap,
-  Check, Loader2, Trash2, MoreHorizontal, ClipboardCheck, X, CheckCircle2, CalendarDays,
+  Check, Loader2, Trash2, MoreHorizontal, ClipboardCheck, X, CheckCircle2, CalendarDays, Timer,
 } from 'lucide-react';
 
 export default function PostCard({ post, currentUser }) {
@@ -80,6 +80,29 @@ export default function PostCard({ post, currentUser }) {
       {post.tags?.length > 0 && (
         <div className="flex flex-wrap gap-1.5 mb-3">
           {post.tags.map(tag => <span key={tag} className="px-2 py-0.5 rounded-full text-xs bg-loop-blue/15 border border-loop-blue/10">#{tag}</span>)}
+        </div>
+      )}
+
+      {/* Schedule */}
+      {post.schedule && !post.schedule.ongoing && post.schedule.startDate && (
+        <div className="mb-3 flex items-center gap-2 text-xs text-loop-green/60">
+          <CalendarDays size={12} className="text-loop-purple flex-shrink-0" />
+          <span className="font-medium">
+            {fmtDate(post.schedule.startDate)}
+            {post.schedule.endDate && ` → ${fmtDate(post.schedule.endDate)}`}
+          </span>
+          {(post.schedule.startTime || post.schedule.endTime) && (
+            <span className="text-loop-green/40">
+              {post.schedule.startTime && fmtClock(post.schedule.startTime)}
+              {post.schedule.startTime && post.schedule.endTime && ' – '}
+              {post.schedule.endTime && fmtClock(post.schedule.endTime)}
+            </span>
+          )}
+        </div>
+      )}
+      {post.schedule?.ongoing && (
+        <div className="mb-3 flex items-center gap-2 text-xs text-loop-green/50">
+          <Timer size={12} className="text-loop-purple" /> <span className="font-medium">Ongoing — no fixed date</span>
         </div>
       )}
 
@@ -257,4 +280,19 @@ function fmtTime(d) {
   if (s < 86400) return `${Math.floor(s / 3600)}h`;
   if (s < 604800) return `${Math.floor(s / 86400)}d`;
   return d.toLocaleDateString();
+}
+
+function fmtDate(ts) {
+  if (!ts) return '';
+  const d = ts.toDate ? ts.toDate() : new Date(ts);
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function fmtClock(timeStr) {
+  if (!timeStr) return '';
+  const [h, m] = timeStr.split(':');
+  const hour = parseInt(h);
+  const ampm = hour >= 12 ? 'PM' : 'AM';
+  const h12 = hour % 12 || 12;
+  return `${h12}:${m} ${ampm}`;
 }

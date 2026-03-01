@@ -69,7 +69,7 @@ const DEMO_POSTS = [
     taskCapacity: 3, taskFilled: 0, hoursReward: 2,
     requirements: ['Must be 16+', 'Able to lift 20 lbs'],
     isInnerOnly: false, minutesAgo: 15,
-    daysFromNow: 2, eventHour: 9,
+    schedule: { type: 'single', daysFromNow: 2, startTime: '09:00', endTime: '13:00' },
   },
   {
     authorEmail: 'looper@demo.com',
@@ -78,7 +78,7 @@ const DEMO_POSTS = [
     taskCapacity: null, taskFilled: null, hoursReward: null,
     requirements: [],
     isInnerOnly: false, minutesAgo: 45,
-    daysFromNow: null, eventHour: null,
+    schedule: null,
   },
   {
     authorEmail: 'inner2@demo.com',
@@ -87,7 +87,7 @@ const DEMO_POSTS = [
     taskCapacity: 5, taskFilled: 0, hoursReward: 1.5,
     requirements: ['Must have car', 'Valid drivers license', 'Speaks English or Spanish'],
     isInnerOnly: false, minutesAgo: 120,
-    daysFromNow: 4, eventHour: 8,
+    schedule: { type: 'single', daysFromNow: 4, startTime: '08:00', endTime: '12:00' },
   },
   {
     authorEmail: 'looper2@demo.com',
@@ -96,7 +96,7 @@ const DEMO_POSTS = [
     taskCapacity: null, taskFilled: null, hoursReward: null,
     requirements: [],
     isInnerOnly: false, minutesAgo: 200,
-    daysFromNow: null, eventHour: null,
+    schedule: null,
   },
   {
     authorEmail: 'inner@demo.com',
@@ -105,16 +105,16 @@ const DEMO_POSTS = [
     taskCapacity: 2, taskFilled: 0, hoursReward: 3,
     requirements: ['Experience with children', 'Must be 18+'],
     isInnerOnly: false, minutesAgo: 300,
-    daysFromNow: 5, eventHour: 10,
+    schedule: { type: 'range', daysFromNow: 5, daysEnd: 6, startTime: '10:00', endTime: '14:00' },
   },
   {
     authorEmail: 'inner2@demo.com',
-    content: 'We have extra canned goods and dry pasta available for any community org that needs them. DM us to arrange pickup.',
-    tags: ['resources', 'food'],
-    taskCapacity: null, taskFilled: null, hoursReward: null,
-    requirements: [],
-    isInnerOnly: true, minutesAgo: 400,
-    daysFromNow: null, eventHour: null,
+    content: 'Weekly food pantry volunteers needed! Every Tuesday and Thursday we need help sorting and distributing groceries to families in Logan Square.',
+    tags: ['food', 'logan-square'],
+    taskCapacity: 4, taskFilled: 0, hoursReward: 2,
+    requirements: ['Able to lift 30 lbs'],
+    isInnerOnly: false, minutesAgo: 400,
+    schedule: { type: 'ongoing' },
   },
   {
     authorEmail: 'looper@demo.com',
@@ -123,7 +123,7 @@ const DEMO_POSTS = [
     taskCapacity: null, taskFilled: null, hoursReward: null,
     requirements: [],
     isInnerOnly: false, minutesAgo: 500,
-    daysFromNow: null, eventHour: null,
+    schedule: null,
   },
 ];
 
@@ -202,6 +202,29 @@ export default function SeedPage() {
       if (!authorUID) { log(`Skipped — no UID for ${p.authorEmail}`, 'error'); continue; }
       const author = DEMO_USERS.find(u => u.email === p.authorEmail);
       try {
+        // Build schedule object
+        let schedule = null;
+        if (p.schedule) {
+          if (p.schedule.type === 'ongoing') {
+            schedule = { type: 'ongoing', startDate: null, endDate: null, startTime: null, endTime: null, ongoing: true };
+          } else {
+            const startTs = p.schedule.daysFromNow != null
+              ? Timestamp.fromDate(new Date(Date.now() + p.schedule.daysFromNow * 86400000))
+              : null;
+            const endTs = p.schedule.daysEnd != null
+              ? Timestamp.fromDate(new Date(Date.now() + p.schedule.daysEnd * 86400000))
+              : null;
+            schedule = {
+              type: p.schedule.type || 'single',
+              startDate: startTs,
+              endDate: endTs,
+              startTime: p.schedule.startTime || null,
+              endTime: p.schedule.endTime || null,
+              ongoing: false,
+            };
+          }
+        }
+
         await addDoc(collection(db, 'posts'), {
           authorID: authorUID,
           authorName: author.name,
@@ -218,9 +241,7 @@ export default function SeedPage() {
           requirements: p.requirements || [],
           applicants: [],
           status: 'active',
-          eventDate: p.daysFromNow != null
-            ? Timestamp.fromDate(new Date(Date.now() + p.daysFromNow * 86400000 + (p.eventHour || 9) * 3600000))
-            : null,
+          schedule,
           location: null,
         });
         log(`"${p.content.slice(0, 40)}..."`, 'success');
