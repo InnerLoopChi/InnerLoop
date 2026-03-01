@@ -138,6 +138,20 @@ export default function MessagesPage() {
         lastSenderID: user.uid,
         [`unread_${otherID}`]: (activeConvo[`unread_${otherID}`] || 0) + 1,
       });
+
+      // Notify the recipient
+      if (otherID) {
+        try {
+          await addDoc(collection(db, 'notifications'), {
+            recipientId: otherID,
+            type: 'new_message',
+            message: `${profile?.name || 'Someone'}: "${text.length > 50 ? text.slice(0, 50) + '...' : text}"`,
+            read: false,
+            createdAt: Timestamp.now(),
+            link: '/messages',
+          });
+        } catch (e) { }
+      }
     } catch (err) {
       console.error('Send error:', err);
       setNewMsg(text); // restore on failure
