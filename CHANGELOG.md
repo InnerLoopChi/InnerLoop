@@ -1,5 +1,42 @@
 # InnerLoop — CHANGELOG
 
+## [0.2.0] — 2026-02-28 — Chunk 2: Auth System + Routing
+
+### Overview
+Added Firebase Authentication, React Router, auth pages (signup with role selection + login), and Firestore user document creation on signup.
+
+### Files Created / Modified
+
+| File | Action | Purpose |
+|---|---|---|
+| `src/contexts/AuthContext.jsx` | **Created** | Auth context provider — wraps app, tracks Firebase auth state, exposes `signup()`, `login()`, `logout()`, provides `user` (Firebase) + `profile` (Firestore doc) |
+| `src/pages/SignUpPage.jsx` | **Created** | Two-step signup: Step 1 = Looper/Inner role selection cards, Step 2 = name/email/password form. Creates Firebase Auth user + Firestore `users` doc with full schema fields |
+| `src/pages/LoginPage.jsx` | **Created** | Email/password login form with error handling for invalid credentials, too many attempts, etc. |
+| `src/App.jsx` | **Rewritten** | Now wraps app in `BrowserRouter` + `AuthProvider`. Routes: `/` (landing), `/signup` (guest), `/login` (guest), `/feed` (protected). Includes `ProtectedRoute` + `GuestRoute` guards, temp `FeedPlaceholder` with profile stats |
+| `src/pages/LandingPage.jsx` | **Modified** | CTA buttons now use `<Link to="/signup">` instead of anchor tags. Added `react-router-dom` Link import |
+| `src/index.css` | **Modified** | Added `animate-fadeIn` keyframe for auth page transitions |
+
+### Auth Flow
+1. User lands on `/` → clicks "Join the Loop" or CTA buttons → navigates to `/signup`
+2. Signup Step 1: Choose Looper or Inner role (visual cards)
+3. Signup Step 2: Fill name, email, password → `createUserWithEmailAndPassword` + `setDoc` to Firestore
+4. On success → redirect to `/feed` (placeholder shows profile stats)
+5. Login at `/login` → `signInWithEmailAndPassword` → redirect to `/feed`
+6. Auth state persists via `onAuthStateChanged` listener
+7. Protected routes redirect to `/login` if not authenticated
+8. Auth pages redirect to `/feed` if already logged in
+
+### Firestore User Document (created on signup)
+```js
+{
+  name, role, tags: [], isVerified: false, location: null,
+  ageVerification: false, starRating: null, verifiedHours: 0,
+  loopCredits: 0, createdAt: serverTimestamp()
+}
+```
+
+---
+
 ## [0.1.0] — 2026-02-28 — Batch 1: Project Init + Landing Page
 
 ### Overview

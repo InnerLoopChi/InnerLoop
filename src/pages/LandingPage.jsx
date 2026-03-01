@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import {
   Heart,
   Building2,
@@ -98,9 +99,9 @@ function Navbar() {
           <a href="#mission" className="text-loop-green/70 hover:text-loop-green transition-colors">Mission</a>
           <a href="#how-it-works" className="text-loop-green/70 hover:text-loop-green transition-colors">How It Works</a>
           <a href="#rewards" className="text-loop-green/70 hover:text-loop-green transition-colors">Rewards</a>
-          <a href="#join" className="group inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-loop-green text-white text-xs font-semibold hover:shadow-lg hover:shadow-loop-green/20 transition-all duration-300 hover:scale-105">
+          <Link to="/signup" className="group inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-loop-green text-white text-xs font-semibold hover:shadow-lg hover:shadow-loop-green/20 transition-all duration-300 hover:scale-105">
             Join the Loop <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
-          </a>
+          </Link>
         </div>
 
         <button
@@ -519,12 +520,12 @@ function JoinCTA() {
         </Reveal>
         <Reveal delay={200}>
           <div className="flex flex-wrap justify-center gap-4 pt-2">
-            <button className="group inline-flex items-center gap-2 px-8 py-4 rounded-full bg-white text-loop-purple font-bold text-sm shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300">
+            <Link to="/signup" className="group inline-flex items-center gap-2 px-8 py-4 rounded-full bg-white text-loop-purple font-bold text-sm shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300">
               <Heart size={16} /> Sign Up as Looper <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
-            </button>
-            <button className="group inline-flex items-center gap-2 px-8 py-4 rounded-full border-2 border-white/40 text-white font-bold text-sm hover:bg-white/10 hover:border-white/60 transition-all duration-300">
+            </Link>
+            <Link to="/signup" className="group inline-flex items-center gap-2 px-8 py-4 rounded-full border-2 border-white/40 text-white font-bold text-sm hover:bg-white/10 hover:border-white/60 transition-all duration-300">
               <Building2 size={16} /> Register as Inner
-            </button>
+            </Link>
           </div>
         </Reveal>
       </div>
