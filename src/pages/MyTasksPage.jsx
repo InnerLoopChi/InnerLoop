@@ -171,8 +171,12 @@ function TaskCard({ task, isInner, isExpanded, onToggle, onMarkComplete, onRevie
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1 min-w-0">
               {isComplete && <CheckCircle2 size={14} className="text-green-600 flex-shrink-0" />}
-              <p className="font-semibold text-sm truncate flex-1 min-w-0">{task.content?.slice(0, 70)}...</p>
+              <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${task.authorRole === 'Inner' ? 'bg-loop-purple/15 text-loop-purple' : 'bg-loop-red/15 text-loop-red'}`}>
+                {task.authorRole === 'Inner' ? <Building2 size={10} /> : <Heart size={10} />}
+              </div>
+              <p className="font-bold text-sm truncate flex-1 min-w-0">{task.authorName}</p>
             </div>
+            <p className="text-xs text-loop-green/70 truncate mb-1.5">{task.content?.slice(0, 80)}{task.content?.length > 80 ? '...' : ''}</p>
             <div className="flex items-center gap-3 text-xs text-loop-green/40">
               <span className="flex items-center gap-1"><Users size={10} /> {task.taskFilled || 0}/{task.taskCapacity}</span>
               <span className="flex items-center gap-1"><Clock size={10} /> +{task.hoursReward}h</span>
