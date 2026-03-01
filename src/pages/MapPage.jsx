@@ -192,7 +192,7 @@ export default function MapPage() {
                     <span className="text-xs font-semibold flex-1">{post.authorName}</span>
                     {post.taskCapacity > 0 && <span className="text-[10px] text-loop-green/40"><Users size={9} className="inline" /> {post.taskFilled || 0}/{post.taskCapacity}</span>}
                   </div>
-                  <p className="text-sm text-loop-green/70">{post.content}</p>
+                  <p className="text-sm text-loop-green/70 break-words">{post.content}</p>
                   {post.tags?.length > 0 && <div className="flex flex-wrap gap-1">{post.tags.map(t => <span key={t} className="px-1.5 py-0.5 rounded-full text-[10px] bg-loop-blue/15">#{t}</span>)}</div>}
                 </div>
               ))}

@@ -35,10 +35,15 @@ export default function ProfilePage() {
   const [loadingReviews, setLoadingReviews] = useState(true);
   const [editingTags, setEditingTags] = useState(false);
   const [tagInput, setTagInput] = useState('');
-  const [tags, setTags] = useState(profile?.tags || []);
+  const [tags, setTags] = useState([]);
   const [savingTags, setSavingTags] = useState(false);
 
   const isInner = profile?.role === 'Inner';
+
+  // Sync tags from profile when profile loads/changes
+  useEffect(() => {
+    if (profile?.tags) setTags(profile.tags);
+  }, [profile?.tags]);
 
   // Load reviews for this user
   useEffect(() => {
@@ -106,6 +111,14 @@ export default function ProfilePage() {
     );
   }
 
+  if (!profile) {
+    return (
+      <div className="min-h-screen bg-loop-gray flex items-center justify-center">
+        <Loader2 size={28} className="animate-spin text-loop-purple" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-loop-gray">
       {/* Top Nav */}
@@ -128,19 +141,17 @@ export default function ProfilePage() {
         {/* Profile Card */}
         <div className="bg-white rounded-3xl shadow-sm border border-loop-gray/50 overflow-hidden">
           {/* Banner gradient */}
-          <div className={`h-24 ${
-            isInner
+          <div className={`h-24 ${isInner
               ? 'bg-gradient-to-r from-loop-purple/30 via-loop-purple/20 to-loop-blue/20'
               : 'bg-gradient-to-r from-loop-red/30 via-loop-red/20 to-loop-blue/20'
-          }`} />
+            }`} />
 
           <div className="px-6 pb-6 -mt-10">
             {/* Avatar */}
-            <div className={`w-20 h-20 rounded-2xl border-4 border-white shadow-lg flex items-center justify-center ${
-              isInner
+            <div className={`w-20 h-20 rounded-2xl border-4 border-white shadow-lg flex items-center justify-center ${isInner
                 ? 'bg-gradient-to-br from-loop-purple to-loop-purple/80'
                 : 'bg-gradient-to-br from-loop-red to-loop-red/80'
-            }`}>
+              }`}>
               {isInner
                 ? <Building2 size={32} className="text-white" />
                 : <Heart size={32} className="text-white" />
@@ -230,7 +241,7 @@ export default function ProfilePage() {
                 <Star size={20} className="text-yellow-500 fill-yellow-500" />
               </div>
               <p className="text-2xl font-bold">
-                {profile?.starRating ? profile.starRating.toFixed(1) : '\u2014'}
+                {profile?.starRating ? profile.starRating.toFixed(1) : '—'}
               </p>
               <p className="text-xs text-loop-green/40">Star Rating</p>
               {profile?.starRating && <StarDisplay rating={profile.starRating} size={12} />}
@@ -299,7 +310,7 @@ export default function ProfilePage() {
                     </span>
                     {review.wasWaitlisted && (
                       <span className="flex items-center gap-1 text-loop-red font-semibold">
-                        <Zap size={11} /> 2\u00d7 waitlist bonus
+                        <Zap size={11} /> 2× waitlist bonus
                       </span>
                     )}
                   </div>

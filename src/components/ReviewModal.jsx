@@ -5,6 +5,9 @@ import {
   doc,
   updateDoc,
   getDoc,
+  getDocs,
+  query,
+  where,
   increment,
   Timestamp,
 } from 'firebase/firestore';
@@ -19,7 +22,7 @@ import {
   Zap,
 } from 'lucide-react';
 
-export default function ReviewModal({ onClose, reviewedUserID, reviewedUserName, hoursForTask, wasWaitlisted = false }) {
+export default function ReviewModal({ onClose, reviewedUserID, reviewedUserName, hoursForTask, wasWaitlisted = false, postId }) {
   const { user } = useAuth();
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
@@ -40,6 +43,19 @@ export default function ReviewModal({ onClose, reviewedUserID, reviewedUserName,
     try {
       setLoading(true);
 
+      // 0. Check for duplicate review
+      const existingReviews = await getDocs(
+        query(collection(db, 'reviews'),
+          where('reviewerID', '==', user.uid),
+          where('reviewedID', '==', reviewedUserID)
+        )
+      );
+      if (!existingReviews.empty) {
+        setError('You have already reviewed this person.');
+        setLoading(false);
+        return;
+      }
+
       // 1. Create the review document
       await addDoc(collection(db, 'reviews'), {
         reviewerID: user.uid,
@@ -48,40 +64,38 @@ export default function ReviewModal({ onClose, reviewedUserID, reviewedUserName,
         hoursVerified: actualHours,
         comment: comment.trim() || null,
         wasWaitlisted,
+        postId: postId || null,
         createdAt: Timestamp.now(),
       });
 
-      // 2. Update the reviewed user's stats
+      // 2. Update the reviewed user's stats with proper average
       const userRef = doc(db, 'users', reviewedUserID);
       const userSnap = await getDoc(userRef);
 
       if (userSnap.exists()) {
         const userData = userSnap.data();
         const currentRating = userData.starRating;
-        const currentHours = userData.verifiedHours || 0;
+        const reviewCount = userData.reviewCount || 0;
 
-        // Calculate new average star rating
-        // We need the count of reviews to compute running average
-        // Simple approach: fetch all reviews for this user and average
-        // For now, do a weighted running average
+        // Proper running average using review count
         let newRating;
-        if (currentRating == null) {
+        if (currentRating == null || reviewCount === 0) {
           newRating = rating;
         } else {
-          // Approximate running average (will be slightly off but close enough)
-          // A proper implementation would count total reviews
-          const weight = Math.min(currentHours / 10, 0.9); // more hours = more weight on existing
-          newRating = currentRating * weight + rating * (1 - weight);
-          newRating = Math.round(newRating * 10) / 10; // round to 1 decimal
+          newRating = ((currentRating * reviewCount) + rating) / (reviewCount + 1);
+          newRating = Math.round(newRating * 10) / 10;
         }
 
-        // Clamp between 1 and 5
         newRating = Math.max(1, Math.min(5, newRating));
+
+        // Credits proportional to hours worked
+        const creditsEarned = actualHours * (wasWaitlisted ? 2 : 1);
 
         await updateDoc(userRef, {
           starRating: newRating,
+          reviewCount: increment(1),
           verifiedHours: increment(actualHours),
-          loopCredits: increment(wasWaitlisted ? 2 : 1), // 2x credits for waitlisted
+          loopCredits: increment(creditsEarned),
         });
       }
 
@@ -120,7 +134,7 @@ export default function ReviewModal({ onClose, reviewedUserID, reviewedUserName,
           {wasWaitlisted && (
             <div className="p-3 rounded-xl bg-loop-red/10 border border-loop-red/15 text-center">
               <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-loop-red">
-                <Zap size={14} /> Waitlist Bonus Active — 2\u00d7 hours & credits
+                <Zap size={14} /> Waitlist Bonus Active — 2× hours & credits
               </span>
             </div>
           )}
@@ -149,8 +163,8 @@ export default function ReviewModal({ onClose, reviewedUserID, reviewedUserName,
                   <Star
                     size={32}
                     className={`transition-colors ${i <= (hoverRating || rating)
-                        ? 'text-yellow-500 fill-yellow-500'
-                        : 'text-loop-gray/60'
+                      ? 'text-yellow-500 fill-yellow-500'
+                      : 'text-loop-gray/60'
                       }`}
                   />
                 </button>
@@ -172,7 +186,7 @@ export default function ReviewModal({ onClose, reviewedUserID, reviewedUserName,
             </p>
             {wasWaitlisted && (
               <p className="text-xs text-loop-red font-medium mt-1">
-                ({hoursForTask} base \u00d7 2 waitlist bonus)
+                ({hoursForTask} base × 2 waitlist bonus)
               </p>
             )}
           </div>

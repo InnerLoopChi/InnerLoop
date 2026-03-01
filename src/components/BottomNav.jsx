@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import {
@@ -15,6 +15,7 @@ export default function BottomNav() {
   const navigate = useNavigate();
   const location = useLocation();
   const { profile, logout } = useAuth();
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const isVerifiedInner = profile?.role === 'Inner' && profile?.isVerified;
   const path = location.pathname;
@@ -43,11 +44,10 @@ export default function BottomNav() {
             <button
               key={tab.id}
               onClick={() => navigate(tab.path)}
-              className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-xl transition-all duration-200 ${
-                isActive
-                  ? 'text-loop-purple'
-                  : 'text-loop-green/35 hover:text-loop-green/60'
-              }`}
+              className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-xl transition-all duration-200 ${isActive
+                ? 'text-loop-purple'
+                : 'text-loop-green/35 hover:text-loop-green/60'
+                }`}
             >
               <div className={`relative ${isActive ? 'scale-110' : ''} transition-transform`}>
                 <Icon size={18} strokeWidth={isActive ? 2.5 : 2} />
@@ -63,7 +63,7 @@ export default function BottomNav() {
         })}
         {/* Logout */}
         <button
-          onClick={handleLogout}
+          onClick={() => setShowLogoutConfirm(true)}
           className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-xl text-loop-green/35 hover:text-loop-red transition-all duration-200"
         >
           <LogOut size={18} strokeWidth={2} />
@@ -71,6 +71,30 @@ export default function BottomNav() {
         </button>
       </div>
       <div className="h-[env(safe-area-inset-bottom)]" />
+
+      {/* Logout confirmation */}
+      {showLogoutConfirm && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-loop-green/40 backdrop-blur-sm" onClick={() => setShowLogoutConfirm(false)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl p-6 max-w-xs w-full text-center space-y-4 animate-fadeIn">
+            <div className="w-14 h-14 mx-auto rounded-full bg-loop-red/10 flex items-center justify-center">
+              <LogOut size={24} className="text-loop-red" />
+            </div>
+            <h3 className="font-display text-lg font-bold">Sign Out?</h3>
+            <p className="text-sm text-loop-green/50">Are you sure you want to sign out of InnerLoop?</p>
+            <div className="flex gap-3">
+              <button onClick={() => setShowLogoutConfirm(false)}
+                className="flex-1 py-2.5 rounded-full bg-loop-gray text-sm font-semibold hover:bg-loop-gray/70 transition-colors">
+                Cancel
+              </button>
+              <button onClick={handleLogout}
+                className="flex-1 py-2.5 rounded-full bg-loop-red text-white text-sm font-semibold hover:bg-red-600 transition-colors">
+                Sign Out
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </nav>
   );
 }

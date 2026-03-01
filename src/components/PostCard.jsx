@@ -17,6 +17,7 @@ export default function PostCard({ post, currentUser }) {
   const isFull = isTask && (post.taskFilled || 0) >= post.taskCapacity;
   const isAuthor = post.authorID === currentUser?.id;
   const isInnerPost = post.authorRole === 'Inner';
+  const isComplete = post.status === 'completed';
   const timeAgo = post.postTime?.toDate ? fmtTime(post.postTime.toDate()) : 'just now';
 
   // Application status
@@ -32,7 +33,7 @@ export default function PostCard({ post, currentUser }) {
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-loop-gray/50 p-5 hover:shadow-md transition-shadow">
+    <div className={`bg-white rounded-2xl border p-5 hover:shadow-md transition-shadow ${isComplete ? 'border-green-200 bg-green-50/30' : 'border-loop-gray/50'}`}>
       {/* Header */}
       <div className="flex items-center gap-3 mb-3">
         <div className={`w-10 h-10 rounded-full flex items-center justify-center ${isInnerPost ? 'bg-loop-purple/15' : 'bg-loop-red/15'}`}>
@@ -64,7 +65,7 @@ export default function PostCard({ post, currentUser }) {
       </div>
 
       {/* Content */}
-      <p className="text-sm leading-relaxed text-loop-green/80 mb-3 whitespace-pre-wrap">{post.content}</p>
+      <p className="text-sm leading-relaxed text-loop-green/80 mb-3 whitespace-pre-wrap break-words">{post.content}</p>
 
       {/* Requirements */}
       {isTask && post.requirements?.length > 0 && (
@@ -124,12 +125,12 @@ export default function PostCard({ post, currentUser }) {
           )}
 
           {/* Non-author actions */}
-          {!isAuthor && (
+          {!isAuthor && !isComplete && (
             <div className="pt-1">
               {myApp?.status === 'accepted' || hasJoined ? (
                 <p className="text-sm font-semibold text-green-600 flex items-center gap-1.5"><CheckCircle2 size={15} /> Accepted!</p>
               ) : myApp?.status === 'rejected' ? (
-                <p className="text-sm text-loop-green/40">Not selected</p>
+                <p className="text-sm text-loop-red/60 flex items-center gap-1.5"><X size={15} /> Not selected — better luck next time!</p>
               ) : myApp?.status === 'pending' ? (
                 <p className="text-sm font-semibold text-loop-purple flex items-center gap-1.5"><Clock size={15} /> Application pending</p>
               ) : (
@@ -170,7 +171,7 @@ function ApplyModal({ post, currentUser, isFull, onClose }) {
       const snap = await getDoc(ref);
       if (!snap.exists()) { toast.error('Post not found.'); return; }
       const data = snap.data();
-      
+
       // Check if already applied
       if (data.applicants?.some(a => a.uid === currentUser.id)) {
         toast.error('You already applied.');
@@ -193,13 +194,13 @@ function ApplyModal({ post, currentUser, isFull, onClose }) {
 
       const updatedApplicants = [...(data.applicants || []), applicant];
       const updates = { applicants: updatedApplicants };
-      
+
       if (isFull) {
         const updatedWaitlist = [...(data.waitlist || [])];
         if (!updatedWaitlist.includes(currentUser.id)) updatedWaitlist.push(currentUser.id);
         updates.waitlist = updatedWaitlist;
       }
-      
+
       await updateDoc(ref, updates);
       toast.success(isFull ? 'Waitlisted! 2× rewards if accepted.' : 'Applied! Organizer will review.');
       onClose();

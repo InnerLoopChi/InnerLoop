@@ -49,10 +49,12 @@ function GuestRoute({ children }) {
 }
 
 function AppRoutes() {
+  const { user, loading } = useAuth();
+
   return (
     <Routes>
-      {/* Public */}
-      <Route path="/" element={<LandingPage />} />
+      {/* Public — redirect to feed if logged in */}
+      <Route path="/" element={user && !loading ? <Navigate to="/feed" /> : <LandingPage />} />
 
       {/* Auth (guest only) */}
       <Route path="/signup" element={<GuestRoute><SignUpPage /></GuestRoute>} />

@@ -114,6 +114,21 @@ function TaskCard({ task, isInner, isExpanded, onToggle, onMarkComplete, onRevie
       const snap = await getDoc(ref);
       if (!snap.exists()) return;
       const data = snap.data();
+
+      // Guard: already accepted
+      const existing = data.applicants?.find(a => a.uid === applicant.uid);
+      if (existing?.status === 'accepted') {
+        toast.info(`${applicant.name} is already accepted.`);
+        return;
+      }
+
+      // Guard: over capacity
+      const currentFilled = data.taskFilled || 0;
+      if (currentFilled >= data.taskCapacity) {
+        toast.error('Task is already at full capacity.');
+        return;
+      }
+
       const updatedApplicants = (data.applicants || []).map(a =>
         a.uid === applicant.uid ? { ...a, status: 'accepted' } : a
       );
@@ -122,7 +137,7 @@ function TaskCard({ task, isInner, isExpanded, onToggle, onMarkComplete, onRevie
       await updateDoc(ref, {
         applicants: updatedApplicants,
         joinedUsers: updatedJoined,
-        taskFilled: (data.taskFilled || 0) + 1,
+        taskFilled: currentFilled + 1,
       });
       toast.success(`Accepted ${applicant.name}!`);
     } catch (err) {
@@ -203,7 +218,9 @@ function TaskCard({ task, isInner, isExpanded, onToggle, onMarkComplete, onRevie
                 <div>
                   <p className="text-xs font-semibold text-loop-green/50 uppercase tracking-wide mb-2">Pending Applications ({pendingApplicants.length})</p>
                   {pendingApplicants.map(app => (
-                    <ApplicantCard key={app.uid} app={app} requirements={task.requirements} onAccept={() => handleAccept(app)} onReject={() => handleReject(app)} />
+                    <ApplicantCard key={app.uid} app={app} requirements={task.requirements}
+                      onAccept={() => handleAccept(app)} onReject={() => handleReject(app)}
+                      showActions={!isComplete} />
                   ))}
                 </div>
               )}
@@ -224,9 +241,12 @@ function TaskCard({ task, isInner, isExpanded, onToggle, onMarkComplete, onRevie
                           </div>
                         </div>
                       </div>
-                      {isComplete && (
+                      {isComplete && !task.reviewedUsers?.includes(app.uid) && (
                         <button onClick={e => { e.stopPropagation(); onReview(app.uid, app.name, task.hoursReward, task.waitlist?.includes(app.uid)); }}
                           className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-loop-purple text-white text-xs font-semibold"><Star size={10} /> Review</button>
+                      )}
+                      {task.reviewedUsers?.includes(app.uid) && (
+                        <span className="flex items-center gap-1 text-xs text-green-600 font-semibold"><Check size={12} /> Reviewed</span>
                       )}
                     </div>
                   ))}
@@ -241,11 +261,10 @@ function TaskCard({ task, isInner, isExpanded, onToggle, onMarkComplete, onRevie
 
           {/* LOOPER VIEW: My application status */}
           {!isInner && myApp && (
-            <div className={`p-4 rounded-xl text-center ${
-              myApp.status === 'accepted' ? 'bg-green-50 border border-green-200' :
-              myApp.status === 'rejected' ? 'bg-loop-gray/30 border border-loop-gray/50' :
-              'bg-loop-blue/10 border border-loop-blue/20'
-            }`}>
+            <div className={`p-4 rounded-xl text-center ${myApp.status === 'accepted' ? 'bg-green-50 border border-green-200' :
+                myApp.status === 'rejected' ? 'bg-loop-gray/30 border border-loop-gray/50' :
+                  'bg-loop-blue/10 border border-loop-blue/20'
+              }`}>
               {myApp.status === 'accepted' ? (
                 <p className="text-sm font-semibold text-green-700 flex items-center justify-center gap-2"><CheckCircle2 size={16} /> You've been accepted!</p>
               ) : myApp.status === 'rejected' ? (
@@ -275,7 +294,7 @@ function TaskCard({ task, isInner, isExpanded, onToggle, onMarkComplete, onRevie
 }
 
 /* ─── Applicant Card (for Inner view) ─── */
-function ApplicantCard({ app, requirements, onAccept, onReject }) {
+function ApplicantCard({ app, requirements, onAccept, onReject, showActions = true }) {
   const hasAllReqs = !requirements?.length || app.metRequirements?.length === requirements.length;
   const metCount = app.metRequirements?.length || 0;
   const totalReqs = requirements?.length || 0;
@@ -320,16 +339,18 @@ function ApplicantCard({ app, requirements, onAccept, onReject }) {
       )}
 
       {/* Accept / Reject */}
-      <div className="flex gap-2">
-        <button onClick={e => { e.stopPropagation(); onAccept(); }}
-          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-full bg-green-600 text-white text-xs font-semibold hover:bg-green-700 transition-all">
-          <UserCheck size={13} /> Accept
-        </button>
-        <button onClick={e => { e.stopPropagation(); onReject(); }}
-          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-full bg-loop-gray text-loop-green/60 text-xs font-semibold hover:bg-loop-red/10 hover:text-loop-red transition-all">
-          <UserX size={13} /> Decline
-        </button>
-      </div>
+      {showActions && (
+        <div className="flex gap-2">
+          <button onClick={e => { e.stopPropagation(); onAccept(); }}
+            className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-full bg-green-600 text-white text-xs font-semibold hover:bg-green-700 transition-all">
+            <UserCheck size={13} /> Accept
+          </button>
+          <button onClick={e => { e.stopPropagation(); onReject(); }}
+            className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-full bg-loop-gray text-loop-green/60 text-xs font-semibold hover:bg-loop-red/10 hover:text-loop-red transition-all">
+            <UserX size={13} /> Decline
+          </button>
+        </div>
+      )}
     </div>
   );
 }
