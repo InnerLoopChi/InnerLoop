@@ -109,21 +109,6 @@ export default function PostCard({ post, currentUser }) {
       {/* Task section */}
       {isTask && (
         <div className="p-3 rounded-xl bg-loop-gray/40 space-y-2.5">
-          {/* Event date/time */}
-          {post.eventDate?.toDate && (
-            <div className="flex items-center gap-2 text-xs font-semibold text-loop-purple">
-              <CalendarDays size={13} />
-              {post.eventDate.toDate().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-              {post.eventDate.toDate().getHours() !== 0 && (
-                <span className="text-loop-green/50 font-normal">
-                  at {post.eventDate.toDate().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
-                </span>
-              )}
-              {post.eventDate.toDate() < new Date() && (
-                <span className="px-1.5 py-0.5 rounded bg-loop-green/10 text-loop-green/40 text-[10px]">Past</span>
-              )}
-            </div>
-          )}
           <div className="flex items-center justify-between text-xs">
             <span className="text-loop-green/50 flex items-center gap-1"><Users size={11} /> {post.taskFilled || 0}/{post.taskCapacity} filled</span>
             <span className="flex items-center gap-1"><Clock size={11} /> +{post.hoursReward}h</span>
