@@ -1,5 +1,52 @@
 # InnerLoop — CHANGELOG
 
+## [0.6.0] — 2026-03-01 — Chunk 6: Task Management + Inner Loop DMs
+
+### Overview
+Built task management for both Inners (manage posted tasks, view participants, mark complete, review Loopers) and Loopers (see joined tasks, status). Added Inner Loop DM system with real-time messaging between verified Inner accounts.
+
+### Files Created / Modified
+
+| File | Action | Purpose |
+|---|---|---|
+| `src/pages/MyTasksPage.jsx` | **Created** | Task management — Inners see posted tasks with expandable participant lists, mark complete button, review buttons per participant (triggers ReviewModal with waitlist 2× detection). Loopers see joined tasks with status. |
+| `src/pages/MessagesPage.jsx` | **Created** | Inner Loop DMs — conversation list with unread badges, real-time chat thread, send messages, new conversation modal with verified Inner search. Access restricted to verified Inners only. |
+| `src/App.jsx` | **Modified** | Added `/tasks` and `/messages` protected routes |
+| `src/pages/FeedPage.jsx` | **Modified** | Added My Tasks (clipboard icon) and Messages (chat icon, Inner-only) nav buttons |
+
+### Task Management Features
+- **Inner View**: See all posted tasks, expandable details, participant list with names loaded from Firestore, waitlist indicator (2× eligible), "Mark Complete" button, per-participant "Review" button that opens ReviewModal
+- **Looper View**: See joined tasks with completion status
+- **Firestore Queries**: `posts` where `authorID == uid` and `taskCapacity > 0` (Inner) or `joinedUsers array-contains uid` (Looper)
+
+### Inner Loop DM Features
+- **Access Control**: Only verified Inners can access `/messages` — others see access denied screen
+- **Conversations**: Stored in `conversations` collection with `participants` array, `participantNames` map, `lastMessage`, `lastMessageAt`, unread counts per participant
+- **Messages**: Subcollection `conversations/{id}/messages` with `senderID`, `senderName`, `text`, `sentAt`
+- **Real-time**: Both conversation list and message thread use `onSnapshot` for live updates
+- **New Conversation**: Modal with search to find verified Inners, deduplicates existing convos
+- **Unread Badges**: Unread count per user tracked on conversation doc, cleared on open
+
+### New Firestore Collections
+```
+conversations/{convoID}
+  participants: [uid1, uid2]
+  participantNames: { uid1: "Name1", uid2: "Name2" }
+  lastMessage: string
+  lastMessageAt: timestamp
+  lastSenderID: string
+  unread_{uid}: number
+  createdAt: timestamp
+
+conversations/{convoID}/messages/{msgID}
+  senderID: string
+  senderName: string
+  text: string
+  sentAt: timestamp
+```
+
+---
+
 ## [0.5.0] — 2026-02-28 — Chunk 5: Security Rules + Docs + Local Dev Setup
 
 ### Overview

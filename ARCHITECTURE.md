@@ -55,3 +55,26 @@ InnerLoop uses **Firebase Auth** for authentication and **Cloud Firestore** for 
 3. **Waitlist on post**: Stored as an array of user IDs on the post doc itself for atomic updates.
 4. **Inner Loop filter**: `isInnerOnly: true` posts are filtered client-side for verified Inners; Firestore security rules enforce this server-side.
 5. **GeoPoint**: Native Firestore type enables future geo-queries.
+
+---
+
+## `conversations` (Inner Loop DMs)
+Only verified Inners can create and participate in conversations.
+
+| Field | Type | Description |
+|---|---|---|
+| `participants` | `array<string>` | Two user IDs (both verified Inners) |
+| `participantNames` | `map` | `{ uid: "Name" }` — denormalized for display |
+| `lastMessage` | `string` | Preview text of most recent message |
+| `lastMessageAt` | `timestamp` | For sorting conversation list |
+| `lastSenderID` | `string` | Who sent the last message |
+| `unread_{uid}` | `number` | Unread count per participant |
+| `createdAt` | `timestamp` | When conversation was created |
+
+### `conversations/{id}/messages` (subcollection)
+| Field | Type | Description |
+|---|---|---|
+| `senderID` | `string` | UID of sender |
+| `senderName` | `string` | Denormalized sender name |
+| `text` | `string` | Message content |
+| `sentAt` | `timestamp` | When message was sent |

@@ -23,6 +23,31 @@
         { "fieldPath": "reviewerID", "order": "ASCENDING" },
         { "fieldPath": "createdAt", "order": "DESCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "conversations",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "participants", "arrayConfig": "CONTAINS" },
+        { "fieldPath": "lastMessageAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "posts",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "authorID", "order": "ASCENDING" },
+        { "fieldPath": "taskCapacity", "order": "ASCENDING" },
+        { "fieldPath": "postTime", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "posts",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "joinedUsers", "arrayConfig": "CONTAINS" },
+        { "fieldPath": "postTime", "order": "DESCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []

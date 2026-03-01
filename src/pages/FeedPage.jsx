@@ -24,6 +24,8 @@ import {
   Loader2,
   Search,
   Lock,
+  ClipboardList,
+  MessageSquare,
 } from 'lucide-react';
 
 export default function FeedPage() {
@@ -107,6 +109,26 @@ export default function FeedPage() {
               >
                 <Lock size={12} />
                 Inner Loop
+              </button>
+            )}
+
+            {/* My Tasks */}
+            <button
+              onClick={() => navigate('/tasks')}
+              className="w-9 h-9 rounded-full bg-loop-gray flex items-center justify-center hover:bg-loop-blue/20 transition-colors"
+              title="My Tasks"
+            >
+              <ClipboardList size={16} className="text-loop-green/60" />
+            </button>
+
+            {/* Messages — only for verified Inners */}
+            {isVerifiedInner && (
+              <button
+                onClick={() => navigate('/messages')}
+                className="w-9 h-9 rounded-full bg-loop-gray flex items-center justify-center hover:bg-loop-purple/15 transition-colors"
+                title="Inner Loop DMs"
+              >
+                <MessageSquare size={16} className="text-loop-purple" />
               </button>
             )}
 

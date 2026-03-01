@@ -6,6 +6,8 @@ import SignUpPage from './pages/SignUpPage';
 import LoginPage from './pages/LoginPage';
 import FeedPage from './pages/FeedPage';
 import ProfilePage from './pages/ProfilePage';
+import MyTasksPage from './pages/MyTasksPage';
+import MessagesPage from './pages/MessagesPage';
 
 // Protected route — redirects to login if not authenticated
 function ProtectedRoute({ children }) {
@@ -59,6 +61,26 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <ProfilePage />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Protected — my tasks */}
+      <Route
+        path="/tasks"
+        element={
+          <ProtectedRoute>
+            <MyTasksPage />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Protected — Inner Loop DMs */}
+      <Route
+        path="/messages"
+        element={
+          <ProtectedRoute>
+            <MessagesPage />
           </ProtectedRoute>
         }
       />
