@@ -13,6 +13,19 @@ Neighborhood volunteering platform for Chicago. Two roles: **Inner** (organizati
 
 **Live:** [innerloopchi.github.io/innerloop.github.io](https://innerloopchi.github.io/innerloop.github.io/)
 
+## Under the hood
+
+We wanted this to feel fast and alive, which meant relying heavily on client-side rendering and real-time database sync. Here's exactly what's powering it:
+
+**Frontend Ecosystem**
+It's a React Single Page Application (SPA) built with Vite for fast hot-module reloading during development and optimized rollups for production. We use React Router DOM for all the navigation—since it's an SPA, page transitions are instant without full browser reloads. Styling is handled entirely by Tailwind CSS, which let us build the design system (like our signature purple/red gradients and glassmorphism navs) directly in the markup without juggling massive CSS files. The UI icons are all Lucide React.
+
+**Backend & Data Layer**
+We went all-in on Firebase. Authentication uses Firebase Auth to handle email/password signups and login sessions. But the real heavy lifting is done by Cloud Firestore. Instead of writing REST APIs and polling a server for updates, the app uses Firestore's `onSnapshot` listeners. This creates an open WebSocket connection to the database. When someone applies to a task, sends a DM, or accepts a request, Firestore pushes that change instantly to any connected client watching that document. That's how the DM system and notification bell stay perfectly synced without any manual refreshing.
+
+**Mapping**
+The interactive neighborhood map is powered by Leaflet.js (via React-Leaflet). Instead of just drawing static pins, we dynamically scale the Chicago neighborhood markers based on live data—if Pilsen has 10 active volunteer posts, its circle marker automatically grows larger on the map than a neighborhood with 2 posts.
+
 ## Setup
 
 ```bash
